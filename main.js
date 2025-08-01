@@ -76,8 +76,9 @@ function createImageCard(file) {
     };
     imageCollection.push(imageState);
 
-    // Event Listeners für die Karte
+    // KORREKTUR: Der Event-Listener für die Auswahl. Er ist jetzt direkt auf der Karte.
     card.addEventListener('click', () => {
+        // Er reagiert NUR, wenn der Auswahlmodus aktiv ist.
         if (isSelectionModeActive) {
             imageState.isSelected = !imageState.isSelected;
             card.classList.toggle('selected', imageState.isSelected);
@@ -111,7 +112,6 @@ function redrawCanvas(imageState) {
     const { canvas, originalImage, metadata, settings } = imageState;
     if (!originalImage) return;
 
-    // Canvas mit Letterboxing füllen
     const ctx = canvas.getContext('2d');
     const container = canvas.parentElement;
     canvas.width = container.clientWidth;
@@ -129,19 +129,20 @@ function redrawCanvas(imageState) {
     const y = (canvas.height - newHeight) / 2;
     ctx.drawImage(originalImage, x, y, newWidth, newHeight);
     
-    // Textzeichnen
     if (metadata.length === 0) return;
 
-    const fontSize = canvas.width * (settings.fontSize / 1200); // Angepasste Skalierung für größere Schrift
+    const fontSize = canvas.width * (settings.fontSize / 1200);
     const padding = fontSize * 1.5;
     const lineHeight = fontSize * 1.2;
+    
+    // KORREKTUR: Alle Schatten-Eigenschaften sind entfernt.
+    ctx.shadowColor = 'transparent';
+
+    // KORREKTUR: Wir erzwingen die Linksbündigkeit vor jedem Zeichnen.
+    ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
     ctx.textBaseline = 'bottom';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-    ctx.shadowBlur = fontSize / 3;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
+    
     let textY = canvas.height - padding;
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
@@ -154,7 +155,9 @@ function getFormattedMetadata(exifData) {
     const tags = EXIF.getAllTags(exifData);
     let lines = [];
     
+    // Das erste Element ist immer die Kamera in Rot.
     lines.push({ text: tags.Model || 'Unbekannte Kamera', color: 'red' });
+    
     if (tags.LensModel) { lines.push({ text: tags.LensModel, color: 'white' }); }
     
     let settings = [];
@@ -169,6 +172,9 @@ function getFormattedMetadata(exifData) {
 
 function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
+    
+    // KORREKTUR: Dies ist der zuverlässigste Weg, den Modus zu aktivieren/deaktivieren.
+    // Wir fügen einfach eine Klasse zum Hauptcontainer hinzu. Das CSS erledigt den Rest.
     appContainer.classList.toggle('selection-active', isSelectionModeActive);
     
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
