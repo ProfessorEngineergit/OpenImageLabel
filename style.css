@@ -20,7 +20,6 @@ body {
     /* KORREKTUR: Das spezifische Hintergrundbild wird verwendet */
     background: url('https://professorengineergit.github.io/Background.jpeg') no-repeat center center fixed;
     background-size: cover;
-    /* Leichte Animation für einen dynamischeren Hintergrund */
     animation: slow-pan 40s infinite alternate ease-in-out;
 }
 
@@ -29,12 +28,10 @@ body {
     to { background-position: 100% 100%; background-size: 110% auto; }
 }
 
-/* Alle UI-Elemente bekommen den Liquid-Glass-Effekt */
 .app-header, .global-actions-bar, .image-card, #drop-zone {
     background: var(--liquid-bg);
     border: var(--liquid-border);
     box-shadow: var(--liquid-shadow);
-    /* WICHTIG: KEIN backdrop-filter, um den Frosted-Look zu vermeiden */
 }
 
 .app-header {
@@ -42,7 +39,7 @@ body {
     padding: 1.2rem;
     font-size: 1.2rem;
     font-weight: 700;
-    border-radius: 0; /* Header geht über die volle Breite */
+    border-radius: 0;
     border-left: none;
     border-right: none;
     border-top: none;
@@ -78,7 +75,7 @@ body {
     border-radius: var(--border-radius-liquid);
     overflow: hidden;
     position: relative;
-    border-width: 2px; /* Dickerer Rand für besseren Leuchteffekt */
+    border-width: 2px;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
