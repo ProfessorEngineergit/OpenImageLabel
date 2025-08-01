@@ -1,157 +1,189 @@
 'use strict';
 
-// UI-Elemente auswählen
+// --- Globale Variablen und UI-Elemente ---
 const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('bild-upload');
-const canvas = document.getElementById('bild-canvas');
-const context = canvas.getContext('2d');
-const promptElement = document.querySelector('.drop-zone-prompt');
-const loader = document.getElementById('loader');
-const downloadButton = document.getElementById('download-button');
-let originalFileName = 'image-with-metadata.jpg';
+const fileInput = document.getElementById('file-input');
+const gallery = document.getElementById('image-gallery');
+const globalActions = document.getElementById('global-actions');
+const downloadSelectedBtn = document.getElementById('download-selected-btn');
+const downloadAllBtn = document.getElementById('download-all-btn');
 
-// --- EVENT LISTENERS ---
+let imageCollection = []; // Speichert den Zustand aller Bilder
 
-// Klick auf die Drop-Zone öffnet den Dateidialog
+// --- Event Listeners ---
 dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
 
-// Reaktion auf Dateiauswahl über den Dialog
-fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        processImageFile(file);
+downloadAllBtn.addEventListener('click', () => downloadImages(imageCollection));
+downloadSelectedBtn.addEventListener('click', () => {
+    const selected = imageCollection.filter(img => img.ui.checkbox.checked);
+    downloadImages(selected);
+});
+
+// --- Hauptfunktionen ---
+function handleFiles(files) {
+    globalActions.style.display = 'block';
+    for (const file of files) {
+        if (file.type === 'image/jpeg') {
+            createImageCard(file);
+        }
     }
-});
+}
 
-// Drag & Drop Event-Handler
-dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault(); // Verhindert, dass der Browser die Datei öffnet
-    dropZone.classList.add('drag-over');
-});
+function createImageCard(file) {
+    const imageId = `img-${Date.now()}-${Math.random()}`;
+    const card = document.createElement('div');
+    card.className = 'image-card';
+    card.innerHTML = `
+        <canvas></canvas>
+        <div class="controls">
+            <div class="control-group">
+                <label><i class="fa-solid fa-text-height"></i> Größe</label>
+                <input type="range" class="slider font-size-slider" min="10" max="100" value="30">
+            </div>
+            <div class="control-group">
+                <label><i class="fa-solid fa-eye-dropper"></i> Deckkraft</label>
+                <input type="range" class="slider transparency-slider" min="0" max="100" value="80">
+            </div>
+            <div class="card-actions">
+                <div class="select-group">
+                    <input type="checkbox" id="check-${imageId}">
+                    <label for="check-${imageId}">Auswählen</label>
+                </div>
+                <a class="button download-single-btn">Speichern</a>
+            </div>
+        </div>`;
+    gallery.appendChild(card);
 
-dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('drag-over');
-});
+    const imageState = {
+        id: imageId,
+        file: file,
+        canvas: card.querySelector('canvas'),
+        metadata: {},
+        settings: { fontSize: 30, alpha: 0.8 },
+        ui: {
+            fontSizeSlider: card.querySelector('.font-size-slider'),
+            transparencySlider: card.querySelector('.transparency-slider'),
+            checkbox: card.querySelector(`#check-${imageId}`),
+            downloadBtn: card.querySelector('.download-single-btn')
+        }
+    };
+    imageCollection.push(imageState);
 
-dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file) {
-        processImageFile(file);
-    }
-});
+    // Event Listeners für die neuen UI-Elemente der Karte
+    imageState.ui.fontSizeSlider.addEventListener('input', (e) => {
+        imageState.settings.fontSize = parseInt(e.target.value);
+        redrawCanvas(imageState);
+    });
+    imageState.ui.transparencySlider.addEventListener('input', (e) => {
+        imageState.settings.alpha = parseInt(e.target.value) / 100;
+        redrawCanvas(imageState);
+    });
+    imageState.ui.downloadBtn.addEventListener('click', () => downloadImages([imageState]));
 
-// Download-Button-Funktionalität
-downloadButton.addEventListener('click', () => {
-    const dataURL = canvas.toDataURL('image/jpeg', 0.9); // JPEG mit 90% Qualität
-    downloadButton.href = dataURL;
-    downloadButton.download = originalFileName;
-});
+    processImageFile(imageState);
+}
 
-
-// --- HAUPTFUNKTIONEN ---
-
-/**
- * Verarbeitet die hochgeladene Bilddatei
- * @param {File} file - Die Bilddatei
- */
-function processImageFile(file) {
-    if (!file.type.startsWith('image/jpeg')) {
-        alert("Bitte nur JPEG-Dateien hochladen.");
-        return;
-    }
-    
-    originalFileName = file.name.replace(/\.jpeg$|\.jpg$/i, '-with-metadata.jpg');
-    
-    // UI für die Verarbeitung vorbereiten
-    promptElement.style.display = 'none';
-    loader.style.display = 'block';
-    canvas.style.display = 'none';
-    downloadButton.style.display = 'none';
-
+function processImageFile(imageState) {
     const reader = new FileReader();
     reader.onload = (e) => {
         const image = new Image();
         image.onload = () => {
-            canvas.width = image.width;
-            canvas.height = image.height;
-            context.drawImage(image, 0, 0);
-
+            imageState.originalImage = image; // Speichere das Originalbild
             EXIF.getData(image, function() {
-                const metadataLines = getFormattedMetadata(this);
-                drawMetadataOnCanvas(metadataLines);
-                
-                // UI nach Verarbeitung aktualisieren
-                loader.style.display = 'none';
-                canvas.style.display = 'block';
-                downloadButton.style.display = 'inline-block';
+                imageState.metadata = getFormattedMetadata(this);
+                redrawCanvas(imageState);
             });
         };
         image.src = e.target.result;
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(imageState.file);
 }
 
-/**
- * Liest viele EXIF-Tags und gibt sie als Array von Objekten zurück.
- * Jedes Objekt enthält den Text und die gewünschte Farbe.
- */
-function getFormattedMetadata(image) {
-    const lines = [];
+function redrawCanvas(imageState) {
+    const { canvas, originalImage, metadata, settings } = imageState;
+    if (!originalImage) return;
 
-    // Kameramodell und Objektiv
-    const model = EXIF.getTag(image, "Model");
-    const lensModel = EXIF.getTag(image, "LensModel");
-    if (model) {
-        // Diese Zeile wird rot gezeichnet
-        lines.push({ text: model, color: '#ff4136' }); // Leuchtendes Rot
+    const ctx = canvas.getContext('2d');
+    canvas.width = originalImage.width;
+    canvas.height = originalImage.height;
+    ctx.drawImage(originalImage, 0, 0);
+
+    // Zeichne einen semi-transparenten Balken für besseren Kontrast
+    const textHeight = (metadata.length + 0.5) * settings.fontSize * 1.2;
+    ctx.fillStyle = `rgba(0, 0, 0, ${settings.alpha - 0.2})`;
+    ctx.fillRect(0, canvas.height - textHeight, canvas.width, textHeight);
+
+    // Text-Styling
+    ctx.font = `700 ${settings.fontSize}px 'Inter', sans-serif`;
+    ctx.textBaseline = 'bottom';
+    const padding = settings.fontSize;
+    let y = canvas.height - padding;
+
+    // Zeichne jede Zeile
+    metadata.slice().reverse().forEach(line => {
+        ctx.fillStyle = `rgba(255, 255, 255, ${settings.alpha})`;
+        ctx.fillText(line, padding, y);
+        y -= settings.fontSize * 1.2;
+    });
+}
+
+function getFormattedMetadata(exifData) {
+    const tags = EXIF.getAllTags(exifData);
+    let lines = [];
+
+    // Kameramodell & Objektiv (Antwort auf deine iPhone-Frage)
+    if (tags.Model) {
+        let modelString = tags.Model;
+        // iPhone-spezifische Logik: 'iPhone 11 Pro back triple camera 4.25mm f/1.8'
+        // Der Name der Kamera (z.B. 'back triple camera') ist Teil des LensModel-Strings.
+        if (tags.LensModel && tags.LensModel.includes(tags.Model)) {
+            modelString = tags.LensModel; // Nutze den detaillierteren Namen
+        } else if (tags.LensModel) {
+            modelString += ` | ${tags.LensModel}`;
+        }
+        lines.push(modelString);
     }
-    if (lensModel) {
-        lines.push({ text: lensModel, color: '#ffffff' });
-    }
-
-    // Aufnahmeeinstellungen
-    const fNumber = EXIF.getTag(image, "FNumber");
-    const exposureTime = EXIF.getTag(image, "ExposureTime");
-    const iso = EXIF.getTag(image, "ISOSpeedRatings");
-    const focalLength = EXIF.getTag(image, "FocalLength");
-
-    const settings = [];
-    if (focalLength) settings.push(`${focalLength.numerator / focalLength.denominator}mm`);
-    if (fNumber) settings.push(`f/${(fNumber.numerator / fNumber.denominator).toFixed(1)}`);
-    if (exposureTime) settings.push(`${exposureTime.numerator}/${exposureTime.denominator}s`);
-    if (iso) settings.push(`ISO ${iso}`);
     
-    if (settings.length > 0) {
-        lines.push({ text: settings.join('  |  '), color: '#ffffff' });
+    // Aufnahmeeinstellungen
+    let settings = [];
+    if (tags.FocalLength) settings.push(`${tags.FocalLength.numerator / tags.FocalLength.denominator}mm`);
+    if (tags.FNumber) settings.push(`f/${tags.FNumber.numerator / tags.FNumber.denominator}`);
+    if (tags.ExposureTime) {
+        const et = tags.ExposureTime;
+        settings.push(et.denominator === 1 ? `${et.numerator}s` : `${et.numerator}/${et.denominator}s`);
+    }
+    if (tags.ISOSpeedRatings) settings.push(`ISO ${tags.ISOSpeedRatings}`);
+    if (settings.length > 0) lines.push(settings.join(' · '));
+
+    // Weitere technische Daten
+    let tech = [];
+    if (tags.ExposureProgram) tech.push(tags.ExposureProgram);
+    if (tags.MeteringMode) tech.push(tags.MeteringMode);
+    if (tech.length > 0) lines.push(tech.join(' · '));
+
+    // GPS-Daten
+    if (tags.GPSLatitude && tags.GPSLongitude) {
+        const lat = tags.GPSLatitude;
+        const lon = tags.GPSLongitude;
+        const latDec = lat[0] + (lat[1]/60) + (lat[2]/3600);
+        const lonDec = lon[0] + (lon[1]/60) + (lon[2]/3600);
+        lines.push(`GPS: ${latDec.toFixed(4)}° ${tags.GPSLatitudeRef}, ${lonDec.toFixed(4)}° ${tags.GPSLongitudeRef}`);
     }
 
     return lines;
 }
 
-/**
- * Zeichnet die Metadaten-Zeilen (mit individuellen Farben) auf den Canvas.
- */
-function drawMetadataOnCanvas(metadataLines) {
-    const schriftgroesse = Math.max(20, canvas.width / 45);
-    const padding = schriftgroesse * 1.5;
-    const lineHeight = schriftgroesse * 1.4;
-
-    context.font = `700 ${schriftgroesse}px 'Inter', sans-serif`; // 700 = bold
-    context.textAlign = "left";
-    context.textBaseline = "bottom";
-    context.shadowColor = 'rgba(0, 0, 0, 0.9)';
-    context.shadowBlur = schriftgroesse / 2;
-    
-    // Startposition links unten
-    let x = padding;
-    let y = canvas.height - padding;
-
-    // Zeichne die Zeilen von unten nach oben
-    metadataLines.reverse().forEach(line => {
-        context.fillStyle = line.color; // Setze die Farbe für jede Zeile individuell
-        context.fillText(line.text, x, y);
-        y -= lineHeight;
+function downloadImages(imagesToDownload) {
+    imagesToDownload.forEach((imageState, index) => {
+        const a = document.createElement('a');
+        a.href = imageState.canvas.toDataURL('image/jpeg', 0.95);
+        a.download = imageState.file.name.replace(/\.jpeg$|\.jpg$/i, '-OpenImageLabel.jpg');
+        
+        // Füge eine kleine Verzögerung hinzu, damit der Browser nicht überlastet wird
+        setTimeout(() => a.click(), index * 200);
     });
 }
