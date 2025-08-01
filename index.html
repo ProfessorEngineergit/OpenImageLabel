@@ -21,18 +21,21 @@
 
     <main class="container">
         <!-- Drop-Zone für den Upload -->
-        <div id="drop-zone">
-            <div class="drop-zone-prompt">
-                <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
-                <h2>Bilder hierher ziehen oder klicken</h2>
-                <p>Unterstützt mehrere JPEG-Dateien gleichzeitig</p>
+        <div id="upload-container">
+            <div id="drop-zone">
+                <div class="drop-zone-prompt">
+                    <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                    <h2>Bilder hierher ziehen oder klicken</h2>
+                    <p>Unterstützt mehrere JPEG-Dateien gleichzeitig</p>
+                </div>
             </div>
         </div>
         <input type="file" id="file-input" accept="image/jpeg" multiple hidden>
 
         <!-- Aktionen für ausgewählte Bilder -->
         <div id="global-actions" class="global-actions-bar" style="display: none;">
-            <button id="download-selected-btn" class="button"><i class="fa-solid fa-check-double"></i> Auswahl herunterladen</button>
+            <h3>Download Optionen</h3>
+            <button id="download-selected-btn" class="button" disabled><i class="fa-solid fa-check-double"></i> Auswahl herunterladen</button>
             <button id="download-all-btn" class="button button-primary"><i class="fa-solid fa-download"></i> Alle herunterladen</button>
         </div>
 
