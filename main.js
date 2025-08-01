@@ -1,115 +1,157 @@
 'use strict';
 
-// HTML-Elemente holen, mit denen wir arbeiten wollen
-const bildUpload = document.getElementById('bild-upload');
+// UI-Elemente auswählen
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('bild-upload');
 const canvas = document.getElementById('bild-canvas');
 const context = canvas.getContext('2d');
+const promptElement = document.querySelector('.drop-zone-prompt');
+const loader = document.getElementById('loader');
+const downloadButton = document.getElementById('download-button');
+let originalFileName = 'image-with-metadata.jpg';
 
-// Füge einen "change"-Listener zum Dateiupload-Feld hinzu.
-// Dieser wird ausgelöst, sobald der Nutzer eine Datei ausgewählt hat.
-bildUpload.addEventListener('change', handleImageUpload);
+// --- EVENT LISTENERS ---
+
+// Klick auf die Drop-Zone öffnet den Dateidialog
+dropZone.addEventListener('click', () => fileInput.click());
+
+// Reaktion auf Dateiauswahl über den Dialog
+fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        processImageFile(file);
+    }
+});
+
+// Drag & Drop Event-Handler
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault(); // Verhindert, dass der Browser die Datei öffnet
+    dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        processImageFile(file);
+    }
+});
+
+// Download-Button-Funktionalität
+downloadButton.addEventListener('click', () => {
+    const dataURL = canvas.toDataURL('image/jpeg', 0.9); // JPEG mit 90% Qualität
+    downloadButton.href = dataURL;
+    downloadButton.download = originalFileName;
+});
+
+
+// --- HAUPTFUNKTIONEN ---
 
 /**
- * Hauptfunktion: Wird ausgeführt, wenn eine Datei ausgewählt wird.
+ * Verarbeitet die hochgeladene Bilddatei
+ * @param {File} file - Die Bilddatei
  */
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-
-    if (file && file.type === "image/jpeg") {
-        const reader = new FileReader();
-
-        // Wenn der FileReader die Datei fertig gelesen hat...
-        reader.onload = function(e) {
-            const image = new Image();
-
-            // Wenn das Bild-Objekt fertig geladen ist...
-            image.onload = function() {
-                // Canvas an die Bildgröße anpassen
-                canvas.width = image.width;
-                canvas.height = image.height;
-
-                // Bild auf den Canvas zeichnen
-                context.drawImage(image, 0, 0);
-
-                // EXIF-Daten auslesen
-                EXIF.getData(image, function() {
-                    const metadatenText = getFormattedMetadata(this);
-
-                    if (metadatenText) {
-                        drawMetadataOnCanvas(metadatenText);
-                    } else {
-                        alert("In diesem Bild konnten keine Kamera-Metadaten gefunden werden.");
-                    }
-                });
-            };
-            // Lade das Bild aus den gelesenen Dateidaten
-            image.src = e.target.result;
-        };
-
-        // Starte das Lesen der Datei
-        reader.readAsDataURL(file);
-    } else if (file) {
-        alert("Bitte lade eine JPEG-Datei hoch. Andere Formate enthalten oft keine Kamera-Metadaten.");
+function processImageFile(file) {
+    if (!file.type.startsWith('image/jpeg')) {
+        alert("Bitte nur JPEG-Dateien hochladen.");
+        return;
     }
+    
+    originalFileName = file.name.replace(/\.jpeg$|\.jpg$/i, '-with-metadata.jpg');
+    
+    // UI für die Verarbeitung vorbereiten
+    promptElement.style.display = 'none';
+    loader.style.display = 'block';
+    canvas.style.display = 'none';
+    downloadButton.style.display = 'none';
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const image = new Image();
+        image.onload = () => {
+            canvas.width = image.width;
+            canvas.height = image.height;
+            context.drawImage(image, 0, 0);
+
+            EXIF.getData(image, function() {
+                const metadataLines = getFormattedMetadata(this);
+                drawMetadataOnCanvas(metadataLines);
+                
+                // UI nach Verarbeitung aktualisieren
+                loader.style.display = 'none';
+                canvas.style.display = 'block';
+                downloadButton.style.display = 'inline-block';
+            });
+        };
+        image.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
 }
 
 /**
- * Liest die EXIF-Tags und formatiert sie zu einem sauberen Text.
+ * Liest viele EXIF-Tags und gibt sie als Array von Objekten zurück.
+ * Jedes Objekt enthält den Text und die gewünschte Farbe.
  */
 function getFormattedMetadata(image) {
+    const lines = [];
+
+    // Kameramodell und Objektiv
     const model = EXIF.getTag(image, "Model");
+    const lensModel = EXIF.getTag(image, "LensModel");
+    if (model) {
+        // Diese Zeile wird rot gezeichnet
+        lines.push({ text: model, color: '#ff4136' }); // Leuchtendes Rot
+    }
+    if (lensModel) {
+        lines.push({ text: lensModel, color: '#ffffff' });
+    }
+
+    // Aufnahmeeinstellungen
     const fNumber = EXIF.getTag(image, "FNumber");
     const exposureTime = EXIF.getTag(image, "ExposureTime");
     const iso = EXIF.getTag(image, "ISOSpeedRatings");
-    
-    let metadataParts = [];
+    const focalLength = EXIF.getTag(image, "FocalLength");
 
-    if (model) {
-        metadataParts.push(model);
-    }
+    const settings = [];
+    if (focalLength) settings.push(`${focalLength.numerator / focalLength.denominator}mm`);
+    if (fNumber) settings.push(`f/${(fNumber.numerator / fNumber.denominator).toFixed(1)}`);
+    if (exposureTime) settings.push(`${exposureTime.numerator}/${exposureTime.denominator}s`);
+    if (iso) settings.push(`ISO ${iso}`);
     
-    let settingsLine = [];
-    if (fNumber) settingsLine.push(`f/${(fNumber.numerator / fNumber.denominator).toFixed(1)}`);
-    if (exposureTime) settingsLine.push(`${exposureTime.numerator}/${exposureTime.denominator}s`);
-    if (iso) settingsLine.push(`ISO ${iso}`);
-    
-    if (settingsLine.length > 0) {
-        metadataParts.push(settingsLine.join('  |  '));
+    if (settings.length > 0) {
+        lines.push({ text: settings.join('  |  '), color: '#ffffff' });
     }
 
-    return metadataParts.join('\n');
+    return lines;
 }
 
 /**
- * Zeichnet den formatierten Text auf den Canvas.
+ * Zeichnet die Metadaten-Zeilen (mit individuellen Farben) auf den Canvas.
  */
-function drawMetadataOnCanvas(metadatenText) {
-    // Dynamische Schriftgröße basierend auf Bildbreite
+function drawMetadataOnCanvas(metadataLines) {
     const schriftgroesse = Math.max(20, canvas.width / 45);
-    const padding = schriftgroesse * 1.2;
-    const lineHeight = schriftgroesse * 1.3;
+    const padding = schriftgroesse * 1.5;
+    const lineHeight = schriftgroesse * 1.4;
 
-    // Text-Styling
-    context.font = `bold ${schriftgroesse}px 'Helvetica Neue', sans-serif`;
-    context.fillStyle = "rgba(255, 255, 255, 0.9)"; // Weiß mit leichter Transparenz
+    context.font = `700 ${schriftgroesse}px 'Inter', sans-serif`; // 700 = bold
     context.textAlign = "left";
     context.textBaseline = "bottom";
-
-    // Schlagschatten für bessere Lesbarkeit auf jedem Hintergrund
-    context.shadowColor = 'rgba(0, 0, 0, 0.8)';
-    context.shadowBlur = 8;
-    context.shadowOffsetX = 0;
-    context.shadowOffsetY = 0;
-
-    const lines = metadatenText.split('\n');
+    context.shadowColor = 'rgba(0, 0, 0, 0.9)';
+    context.shadowBlur = schriftgroesse / 2;
     
-    // Positioniere den Text links unten
+    // Startposition links unten
     let x = padding;
-    let y = canvas.height - padding - ((lines.length - 1) * lineHeight);
+    let y = canvas.height - padding;
 
-    // Zeichne jede Zeile
-    lines.forEach(line => {
-        context.fillText(line.trim(), x, y);
-        y += lineHeight;
+    // Zeichne die Zeilen von unten nach oben
+    metadataLines.reverse().forEach(line => {
+        context.fillStyle = line.color; // Setze die Farbe für jede Zeile individuell
+        context.fillText(line.text, x, y);
+        y -= lineHeight;
     });
 }
