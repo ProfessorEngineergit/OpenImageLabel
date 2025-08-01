@@ -2,15 +2,15 @@
     /* Farbpalette: Blau als Primärfarbe, aber jetzt auf einer glasartigen Oberfläche */
     --primary-color: #007aff; /* Klassisches Apple-Blau */
     --primary-hover: #0a84ff;
-    --mkbhd-red: #ff0000;
+    --mkbhd-red: #ff0000; /* Reines, kräftiges Rot */
     --text-color: #f5f5f7; /* Leicht gebrochenes Weiß für bessere Lesbarkeit */
     --text-muted-color: #a1a1a6;
     
-    /* Liquid Glass Material-Eigenschaften */
-    --glass-bg: rgba(255, 255, 255, 0.1); /* Semi-transparenter weißer Hintergrund */
-    --glass-border: rgba(255, 255, 255, 0.2);
-    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    --blur-amount: 15px; /* Stärkerer Blur für den Glas-Effekt */
+    /* Frosted-Glass-Material-Eigenschaften */
+    --glass-bg: rgba(255, 255, 255, 0.15); /* Etwas weniger transparent für bessere Lesbarkeit */
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --blur-amount: 12px;
 
     /* Stärkere, konsistente Rundungen */
     --border-radius-card: 22px;
@@ -21,37 +21,15 @@ body {
     font-family: 'Exo 2', sans-serif;
     color: var(--text-color);
     margin: 0;
-    /* WICHTIG: Der Hintergrund wird hier nicht mehr gesetzt, sondern im Pseudo-Element */
-    background-color: #000;
-}
-
-/* Der MacOS-inspirierte Hintergrund-Gradient */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -1; /* Liegt hinter allem anderen Inhalt */
     
-    /* Mehrere radiale Gradienten für einen komplexen, weichen Look */
-    background: 
-        radial-gradient(circle at top left, hsla(280, 80%, 30%, 0.5), transparent 40%),
-        radial-gradient(circle at bottom right, hsla(190, 90%, 50%, 0.6), transparent 50%),
-        radial-gradient(circle at center, hsla(30, 90%, 60%, 0.4), transparent 60%),
-        #121212; /* Fallback-Farbe */
-    
-    animation: gradient-flow 30s ease-in-out infinite;
+    /* Der neue Hintergrund: Ein Online-Bild */
+    background-image: url('https://images.unsplash.com/photo-1554034483-04e0d58e0b14?q=80&w=2070&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed; /* Hält den Hintergrund fest, während die Seite scrollt */
 }
 
-@keyframes gradient-flow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* Alle UI-Elemente bekommen den Liquid-Glass-Effekt */
+/* Alle UI-Elemente bekommen den Frosted-Glass-Effekt */
 .app-header, .global-actions-bar, .image-card, #drop-zone {
     background: var(--glass-bg);
     backdrop-filter: blur(var(--blur-amount));
@@ -65,6 +43,8 @@ body::before {
     padding: 1.2rem;
     font-size: 1.2rem;
     font-weight: 700;
+    border: none;
+    border-bottom: 1px solid var(--glass-border);
 }
 .app-header h1 i { color: var(--primary-color); }
 
@@ -77,9 +57,10 @@ body::before {
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
-    border: 3px dashed var(--glass-border); /* Gestrichelter Glas-Rand */
+    border-style: dashed;
+    border-width: 3px;
 }
-#drop-zone.drag-over { border-color: var(--primary-color); }
+#drop-zone.drag-over { border-color: var(--primary-color); background: rgba(0, 122, 255, 0.1); }
 .drop-icon { font-size: 3rem; color: var(--primary-color); }
 
 .global-actions-bar {
@@ -97,7 +78,7 @@ body::before {
     border-radius: var(--border-radius-card);
     overflow: hidden;
     position: relative;
-    border-width: 2px; /* Dickerer Rand für besseren Leuchteffekt */
+    border-width: 2px;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -131,7 +112,7 @@ body::before {
 .selection-indicator i { opacity: 0; transform: scale(0.5); transition: all 0.2s ease-out; }
 .image-card.selected .selection-indicator i { opacity: 1; transform: scale(1); }
 
-.canvas-container { width: 100%; height: 220px; background-color: #000; display: flex; justify-content: center; align-items: center; border-radius: 0 0 1px 1px; /* leichter Trick, um Aliasing zu verhindern */ }
+.canvas-container { width: 100%; height: 220px; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
 .canvas-container canvas { max-width: 100%; max-height: 100%; }
 
 .controls { padding: 1.2rem; border-top: 1px solid var(--glass-border); }
