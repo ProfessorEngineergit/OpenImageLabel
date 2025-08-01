@@ -1,41 +1,40 @@
 :root {
-    /* Farbpalette: Blau als Primärfarbe, aber jetzt auf einer glasartigen Oberfläche */
-    --primary-color: #007aff; /* Klassisches Apple-Blau */
+    --primary-color: #007aff;
     --primary-hover: #0a84ff;
-    --mkbhd-red: #ff0000; /* Reines, kräftiges Rot */
-    --text-color: #f5f5f7; /* Leicht gebrochenes Weiß für bessere Lesbarkeit */
-    --text-muted-color: #a1a1a6;
+    --mkbhd-red: #ff0000;
+    --text-color: #f5f5f7;
     
-    /* Frosted-Glass-Material-Eigenschaften */
-    --glass-bg: rgba(255, 255, 255, 0.15); /* Etwas weniger transparent für bessere Lesbarkeit */
-    --glass-border: rgba(255, 255, 255, 0.25);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    --blur-amount: 12px;
+    /* Liquid Glass Properties */
+    --liquid-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    --liquid-border: 1px solid rgba(255, 255, 255, 0.15);
+    --liquid-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
 
-    /* Stärkere, konsistente Rundungen */
-    --border-radius-card: 22px;
-    --border-radius-button: 16px;
+    --border-radius-liquid: 24px;
+    --border-radius-button: 18px;
 }
 
 body {
     font-family: 'Exo 2', sans-serif;
     color: var(--text-color);
     margin: 0;
-    
-    /* Der neue Hintergrund: Ein Online-Bild */
-    background-image: url('https://images.unsplash.com/photo-1554034483-04e0d58e0b14?q=80&w=2070&auto=format&fit=crop');
+    /* KORREKTUR: Das spezifische Hintergrundbild wird verwendet */
+    background: url('https://professorengineergit.github.io/Background.jpeg') no-repeat center center fixed;
     background-size: cover;
-    background-position: center center;
-    background-attachment: fixed; /* Hält den Hintergrund fest, während die Seite scrollt */
+    /* Leichte Animation für einen dynamischeren Hintergrund */
+    animation: slow-pan 40s infinite alternate ease-in-out;
 }
 
-/* Alle UI-Elemente bekommen den Frosted-Glass-Effekt */
+@keyframes slow-pan {
+    from { background-position: 0% 0%; background-size: 100% auto; }
+    to { background-position: 100% 100%; background-size: 110% auto; }
+}
+
+/* Alle UI-Elemente bekommen den Liquid-Glass-Effekt */
 .app-header, .global-actions-bar, .image-card, #drop-zone {
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--blur-amount));
-    -webkit-backdrop-filter: blur(var(--blur-amount)); /* Für Safari-Kompatibilität */
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
+    background: var(--liquid-bg);
+    border: var(--liquid-border);
+    box-shadow: var(--liquid-shadow);
+    /* WICHTIG: KEIN backdrop-filter, um den Frosted-Look zu vermeiden */
 }
 
 .app-header {
@@ -43,8 +42,10 @@ body {
     padding: 1.2rem;
     font-size: 1.2rem;
     font-weight: 700;
-    border: none;
-    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0; /* Header geht über die volle Breite */
+    border-left: none;
+    border-right: none;
+    border-top: none;
 }
 .app-header h1 i { color: var(--primary-color); }
 
@@ -52,16 +53,15 @@ body {
 #upload-container.hidden { display: none; }
 
 #drop-zone {
-    border-radius: var(--border-radius-card);
+    border-radius: var(--border-radius-liquid);
     padding: 2.5rem;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
     border-style: dashed;
-    border-width: 3px;
 }
 #drop-zone.drag-over { border-color: var(--primary-color); background: rgba(0, 122, 255, 0.1); }
-.drop-icon { font-size: 3rem; color: var(--primary-color); }
+.drop-icon { font-size: 3rem; color: var(--primary-color); text-shadow: 0 0 15px rgba(0, 122, 255, 0.5); }
 
 .global-actions-bar {
     padding: 1rem;
@@ -75,17 +75,17 @@ body {
 #image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
 
 .image-card {
-    border-radius: var(--border-radius-card);
+    border-radius: var(--border-radius-liquid);
     overflow: hidden;
     position: relative;
-    border-width: 2px;
+    border-width: 2px; /* Dickerer Rand für besseren Leuchteffekt */
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .selection-active .image-card { cursor: pointer; }
 .selection-active .image-card.selected {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px var(--surface-color), 0 0 30px 8px rgba(0, 122, 255, 0.5), inset 0 0 15px 3px rgba(0, 122, 255, 0.15);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.5), 0 0 30px 8px rgba(0, 122, 255, 0.4);
 }
 
 .selection-indicator {
@@ -94,9 +94,8 @@ body {
     right: 1rem;
     width: 2rem;
     height: 2rem;
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--blur-amount));
-    border: 2px solid var(--glass-border);
+    background: rgba(0,0,0,0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -112,17 +111,17 @@ body {
 .selection-indicator i { opacity: 0; transform: scale(0.5); transition: all 0.2s ease-out; }
 .image-card.selected .selection-indicator i { opacity: 1; transform: scale(1); }
 
-.canvas-container { width: 100%; height: 220px; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
+.canvas-container { width: 100%; height: 220px; background-color: #000; display: flex; justify-content: center; align-items: center; }
 .canvas-container canvas { max-width: 100%; max-height: 100%; }
 
-.controls { padding: 1.2rem; border-top: 1px solid var(--glass-border); }
+.controls { padding: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
 .control-group { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .slider { -webkit-appearance: none; width: 100%; height: 8px; background: rgba(0,0,0,0.3); outline: none; border-radius: 4px; }
 .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: var(--text-color); cursor: pointer; border-radius: 50%; border: 2px solid rgba(0,0,0,0.5); }
 
 .button {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: var(--liquid-bg);
+    border: var(--liquid-border);
     color: var(--text-color);
     padding: 0.8rem 1.2rem;
     border-radius: var(--border-radius-button);
@@ -132,7 +131,7 @@ body {
     transition: all 0.2s;
     white-space: nowrap;
 }
-.button:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+.button:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
 .button.button-primary { background-color: var(--primary-color); border-color: transparent; }
 .button.button-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
 .button:disabled { background-color: rgba(50,50,50,0.5); color: #777; cursor: not-allowed; transform: none; border-color: transparent; }
