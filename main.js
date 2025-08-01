@@ -42,7 +42,10 @@ function handleFiles(files) {
 }
 
 function createImageCard(file) {
-    const imageId = `img-${Date.now()}-${Math.random()}`;
+    // KORRIGIERTER TEIL: Erzeuge eine saubere, zufällige ID ohne Dezimalpunkte.
+    const randomSuffix = Math.floor(Math.random() * 1000000);
+    const imageId = `img-${Date.now()}-${randomSuffix}`;
+    
     const card = document.createElement('div');
     card.className = 'image-card';
     card.innerHTML = `
@@ -160,9 +163,11 @@ function getFormattedMetadata(exifData) {
     // Priorität 1: Kameramodell & Objektiv
     let modelString = tags.Model || 'Unbekannte Kamera';
     if (tags.LensModel) {
+        // Nutze LensModel, wenn es verfügbar ist, da es oft detaillierter ist
         lines.push({ text: tags.LensModel });
+    } else {
+        lines.push({ text: modelString });
     }
-    lines.push({ text: modelString });
     
     // Priorität 2: Kerneinstellungen
     let settings = [];
@@ -176,7 +181,7 @@ function getFormattedMetadata(exifData) {
     if (settings.length > 0) lines.push({ text: settings.join(' · ') });
 
     // Priorität 3: Aufnahmedatum
-    if (tags.DateTimeOriginal) lines.push({ text: tags.DateTimeOriginal });
+    if (tags.DateTimeOriginal) lines.push({ text: tags.DateTimeOriginal.split(" ")[0].replace(/:/g, '-') });
 
     return lines;
 }
