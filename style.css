@@ -1,16 +1,51 @@
 body {
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     text-align: center;
-    background-color: #f0f0f0;
 }
 
-#bild-upload {
-    margin: 20px 0;
+h1 {
+    color: #1c1e21;
 }
 
+p {
+    color: #606770;
+    margin-bottom: 25px;
+}
+
+/* Styling für den Upload-Button (das Label) */
+.upload-button {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.upload-button:hover {
+    background-color: #0056b3;
+}
+
+/* Styling für den Canvas-Bereich */
 #bild-canvas {
     display: block;
-    margin: 0 auto;
     max-width: 100%;
-    border: 1px solid #ccc;
+    margin: 30px auto 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
