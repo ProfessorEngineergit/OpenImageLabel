@@ -24,39 +24,37 @@ selectionModeBtn.addEventListener('click', toggleSelectionMode);
 downloadSelectedBtn.addEventListener('click', () => {
     const selected = imageCollection.filter(img => img.isSelected);
     downloadImages(selected);
-    toggleSelectionMode(true); // Auswahlmodus nach Download beenden
+    toggleSelectionMode(true);
 });
 
 // --- Kernlogik ---
-
 function handleFiles(files) {
     if (files.length === 0) return;
     uploadContainer.classList.add('hidden');
     globalActions.style.display = 'flex';
     for (const file of files) {
-        if (file.type === 'image/jpeg') {
-            createImageCard(file);
-        }
+        if (file.type === 'image/jpeg') createImageCard(file);
     }
 }
 
 function createImageCard(file) {
-    const randomSuffix = Math.floor(Math.random() * 1000000);
-    const imageId = `img-${Date.now()}-${randomSuffix}`;
+    const imageId = `card-${Math.random().toString(36).substr(2, 9)}`;
     const card = document.createElement('div');
     card.className = 'image-card';
     card.id = imageId;
     card.innerHTML = `
         <div class="selection-indicator"><i class="fa-solid fa-check"></i></div>
-        <div class="canvas-container"><canvas></canvas></div>
-        <div class="controls">
-            <div class="control-group">
-                <i class="fa-solid fa-text-height"></i>
-                <input type="range" class="slider font-size-slider" min="10" max="100" value="50">
-            </div>
-            <div class="control-group">
-                <i class="fa-solid fa-eye-dropper"></i>
-                <input type="range" class="slider transparency-slider" min="0" max="100" value="95">
+        <div class="image-card-inner">
+            <div class="canvas-container"><canvas></canvas></div>
+            <div class="controls">
+                <div class="control-group">
+                    <i class="fa-solid fa-text-height"></i>
+                    <input type="range" class="slider font-size-slider" min="10" max="100" value="55">
+                </div>
+                <div class="control-group">
+                    <i class="fa-solid fa-eye-dropper"></i>
+                    <input type="range" class="slider transparency-slider" min="0" max="100" value="95">
+                </div>
             </div>
         </div>`;
     gallery.appendChild(card);
@@ -68,7 +66,7 @@ function createImageCard(file) {
         cardElement: card,
         canvas: card.querySelector('canvas'),
         metadata: [],
-        settings: { fontSize: 50, alpha: 0.95 },
+        settings: { fontSize: 55, alpha: 0.95 },
         ui: {
             fontSizeSlider: card.querySelector('.font-size-slider'),
             transparencySlider: card.querySelector('.transparency-slider'),
@@ -76,9 +74,8 @@ function createImageCard(file) {
     };
     imageCollection.push(imageState);
 
-    // KORREKTUR: Der Event-Listener für die Auswahl. Er ist jetzt direkt auf der Karte.
+    // KORRIGIERTER AUSWAHL-LISTENER
     card.addEventListener('click', () => {
-        // Er reagiert NUR, wenn der Auswahlmodus aktiv ist.
         if (isSelectionModeActive) {
             imageState.isSelected = !imageState.isSelected;
             card.classList.toggle('selected', imageState.isSelected);
@@ -114,39 +111,39 @@ function redrawCanvas(imageState) {
 
     const ctx = canvas.getContext('2d');
     const container = canvas.parentElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-    
+    canvas.width = container.clientWidth * 2; // Erhöhe Auflösung für schärferen Text
+    canvas.height = container.clientHeight * 2;
+    ctx.scale(2, 2); // Skaliere den Kontext
+
+    // Letterboxing
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    const hRatio = canvas.width / originalImage.width;
-    const vRatio = canvas.height / originalImage.height;
+    const hRatio = container.clientWidth / originalImage.width;
+    const vRatio = container.clientHeight / originalImage.height;
     const ratio = Math.min(hRatio, vRatio);
     const newWidth = originalImage.width * ratio;
     const newHeight = originalImage.height * ratio;
-    const x = (canvas.width - newWidth) / 2;
-    const y = (canvas.height - newHeight) / 2;
+    const x = (container.clientWidth - newWidth) / 2;
+    const y = (container.clientHeight - newHeight) / 2;
     ctx.drawImage(originalImage, x, y, newWidth, newHeight);
     
+    // KORRIGIERTE TEXT-LOGIK
     if (metadata.length === 0) return;
-
-    const fontSize = canvas.width * (settings.fontSize / 1200);
-    const padding = fontSize * 1.5;
-    const lineHeight = fontSize * 1.2;
+    const fontSize = container.clientWidth * (settings.fontSize / 1000);
+    const padding = fontSize;
+    const lineHeight = fontSize * 1.3;
     
-    // KORREKTUR: Alle Schatten-Eigenschaften sind entfernt.
-    ctx.shadowColor = 'transparent';
-
-    // KORREKTUR: Wir erzwingen die Linksbündigkeit vor jedem Zeichnen.
-    ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
-    
-    let textY = canvas.height - padding;
+    // Leichter Schatten für Lesbarkeit, kein hässlicher Rand
+    ctx.shadowColor = 'rgba(0,0,0,0.7)';
+    ctx.shadowBlur = 5;
+
+    let textY = container.clientHeight - padding;
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
-        ctx.fillText(line.text, padding, textY, canvas.width - (padding * 2));
+        ctx.fillText(line.text, padding, textY);
         textY -= lineHeight;
     });
 }
@@ -154,31 +151,21 @@ function redrawCanvas(imageState) {
 function getFormattedMetadata(exifData) {
     const tags = EXIF.getAllTags(exifData);
     let lines = [];
-    
-    // Das erste Element ist immer die Kamera in Rot.
     lines.push({ text: tags.Model || 'Unbekannte Kamera', color: 'red' });
-    
-    if (tags.LensModel) { lines.push({ text: tags.LensModel, color: 'white' }); }
-    
+    if (tags.LensModel) lines.push({ text: tags.LensModel, color: 'white' });
     let settings = [];
     if (tags.FocalLength) settings.push(`${tags.FocalLength}mm`);
     if (tags.FNumber) settings.push(`f/${tags.FNumber}`);
     if (tags.ExposureTime) { const et = tags.ExposureTime; settings.push(et < 1 ? `1/${Math.round(1/et)}s` : `${et}s`); }
     if (tags.ISOSpeedRatings) settings.push(`ISO ${tags.ISOSpeedRatings}`);
     if (settings.length > 0) lines.push({ text: settings.join('  ·  '), color: 'white' });
-
     return lines;
 }
 
 function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
-    
-    // KORREKTUR: Dies ist der zuverlässigste Weg, den Modus zu aktivieren/deaktivieren.
-    // Wir fügen einfach eine Klasse zum Hauptcontainer hinzu. Das CSS erledigt den Rest.
     appContainer.classList.toggle('selection-active', isSelectionModeActive);
-    
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
-    
     if (!isSelectionModeActive) {
         imageCollection.forEach(img => {
             img.isSelected = false;
@@ -199,7 +186,10 @@ function downloadImages(imagesToDownload) {
     if (imagesToDownload.length === 0) return;
     imagesToDownload.forEach((state, i) => {
         const a = document.createElement('a');
-        a.href = state.canvas.toDataURL('image/jpeg', 0.95);
+        const hiresCanvas = document.createElement('canvas');
+        state.canvas = hiresCanvas; // Temporär das hochauflösende Canvas nutzen
+        redrawCanvas(state); // Neu zeichnen in voller Auflösung
+        a.href = hiresCanvas.toDataURL('image/jpeg', 0.95);
         a.download = state.file.name.replace(/\.jpeg$|\.jpg$/i, '-OpenImageLabel.jpg');
         setTimeout(() => a.click(), i * 200);
     });
