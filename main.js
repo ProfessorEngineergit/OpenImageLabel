@@ -76,9 +76,7 @@ function createImageCard(file) {
     };
     imageCollection.push(imageState);
 
-    // KORREKTUR: Der Event-Listener für die Auswahl. Er ist jetzt direkt auf der Karte.
     card.addEventListener('click', () => {
-        // Er reagiert NUR, wenn der Auswahlmodus aktiv ist.
         if (isSelectionModeActive) {
             imageState.isSelected = !imageState.isSelected;
             card.classList.toggle('selected', imageState.isSelected);
@@ -135,20 +133,13 @@ function redrawCanvas(imageState) {
     const padding = fontSize * 1.5;
     const lineHeight = fontSize * 1.2;
     
-    // KORREKTUR: Alle Schatten-Eigenschaften werden entfernt für einen sauberen Look.
     ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
-    // KORREKTUR: Wir erzwingen die Linksbündigkeit vor jedem Zeichnen.
     ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
     ctx.textBaseline = 'bottom';
     
     let textY = canvas.height - padding;
     metadata.slice().reverse().forEach(line => {
-        // KORREKTUR: MKBHD-Rot wird hier verwendet.
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
         ctx.fillText(line.text, padding, textY, canvas.width - (padding * 2));
         textY -= lineHeight;
@@ -174,8 +165,6 @@ function getFormattedMetadata(exifData) {
 
 function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
-    
-    // KORREKTUR: Dies ist der zuverlässigste Weg, den Modus zu aktivieren/deaktivieren.
     appContainer.classList.toggle('selection-active', isSelectionModeActive);
     
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
