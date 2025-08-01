@@ -29,11 +29,8 @@ downloadSelectedBtn.addEventListener('click', () => {
 
 function handleFiles(files) {
     if (files.length === 0) return;
-
-    // UI-Anpassungen beim ersten Upload
     uploadContainer.classList.add('hidden');
     globalActions.style.display = 'block';
-
     for (const file of files) {
         if (file.type === 'image/jpeg') {
             createImageCard(file);
@@ -42,10 +39,8 @@ function handleFiles(files) {
 }
 
 function createImageCard(file) {
-    // KORRIGIERTER TEIL: Erzeuge eine saubere, zufällige ID ohne Dezimalpunkte.
     const randomSuffix = Math.floor(Math.random() * 1000000);
     const imageId = `img-${Date.now()}-${randomSuffix}`;
-    
     const card = document.createElement('div');
     card.className = 'image-card';
     card.innerHTML = `
@@ -60,7 +55,7 @@ function createImageCard(file) {
             </div>
             <div class="control-group">
                 <label><i class="fa-solid fa-eye-dropper"></i> Deckkraft</label>
-                <input type="range" class="slider transparency-slider" min="0" max="100" value="80">
+                <input type="range" class="slider transparency-slider" min="0" max="100" value="90">
             </div>
             <div class="card-actions">
                 <label class="select-group">
@@ -77,7 +72,7 @@ function createImageCard(file) {
         canvas: card.querySelector('canvas'),
         placeholder: card.querySelector('.placeholder'),
         metadata: [],
-        settings: { fontSize: 30, alpha: 0.8 },
+        settings: { fontSize: 30, alpha: 0.9 },
         ui: {
             fontSizeSlider: card.querySelector('.font-size-slider'),
             transparencySlider: card.querySelector('.transparency-slider'),
@@ -86,7 +81,6 @@ function createImageCard(file) {
     };
     imageCollection.push(imageState);
 
-    // Event Listeners für die neuen UI-Elemente
     imageState.ui.fontSizeSlider.addEventListener('input', (e) => {
         imageState.settings.fontSize = parseInt(e.target.value);
         redrawCanvas(imageState);
@@ -97,7 +91,6 @@ function createImageCard(file) {
     });
     imageState.ui.checkbox.addEventListener('change', updateGlobalButtonState);
 
-    // Starte die Bildverarbeitung
     processImage(imageState);
 }
 
@@ -106,16 +99,14 @@ function processImage(imageState) {
     reader.onload = (e) => {
         const image = new Image();
         image.onload = () => {
-            imageState.originalImage = image; // Speichere das geladene Originalbild
+            imageState.originalImage = image;
             imageState.canvas.width = image.width;
             imageState.canvas.height = image.height;
-            // Passe das Seitenverhältnis des Containers an, um Layout-Sprünge zu vermeiden
             imageState.canvas.parentElement.style.paddingTop = `${(image.height / image.width) * 100}%`;
-
             EXIF.getData(image, function() {
                 imageState.metadata = getFormattedMetadata(this);
                 redrawCanvas(imageState);
-                imageState.placeholder.style.display = 'none'; // Verstecke den Lade-Platzhalter
+                imageState.placeholder.style.display = 'none';
             });
         };
         image.src = e.target.result;
@@ -128,28 +119,28 @@ function redrawCanvas(imageState) {
     if (!originalImage) return;
 
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Canvas leeren
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(originalImage, 0, 0);
 
-    const textLines = metadata.length;
-    if (textLines === 0) return;
+    if (metadata.length === 0) return;
 
-    const fontSize = canvas.width * (settings.fontSize / 1000); // Skalierbare Schriftgröße
-    const padding = fontSize;
+    const fontSize = canvas.width * (settings.fontSize / 1000);
+    const padding = fontSize * 1.2;
     const lineHeight = fontSize * 1.3;
-    const textBlockHeight = (textLines * lineHeight) + padding;
 
-    // Zeichne einen semi-transparenten Balken für besseren Kontrast
-    ctx.fillStyle = `rgba(0, 0, 0, ${settings.alpha * 0.7})`;
-    ctx.fillRect(0, canvas.height - textBlockHeight, canvas.width, textBlockHeight);
+    // HIER IST DIE ÄNDERUNG: Kein Hintergrundbalken mehr.
+    // Stattdessen fügen wir einen Textschatten für die Lesbarkeit hinzu.
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = fontSize / 4;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = fontSize / 20;
 
     // Text-Styling
-    ctx.font = `700 ${fontSize}px 'Inter', sans-serif`;
+    ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`; // Neue Schriftart
     ctx.textBaseline = 'bottom';
     ctx.fillStyle = `rgba(255, 255, 255, ${settings.alpha})`;
     let y = canvas.height - padding;
 
-    // Zeichne jede Zeile von unten nach oben
     metadata.slice().reverse().forEach(line => {
         ctx.fillText(line.text, padding, y, canvas.width - (padding * 2));
         y -= lineHeight;
@@ -159,17 +150,12 @@ function redrawCanvas(imageState) {
 function getFormattedMetadata(exifData) {
     const tags = EXIF.getAllTags(exifData);
     let lines = [];
-
-    // Priorität 1: Kameramodell & Objektiv
     let modelString = tags.Model || 'Unbekannte Kamera';
     if (tags.LensModel) {
-        // Nutze LensModel, wenn es verfügbar ist, da es oft detaillierter ist
         lines.push({ text: tags.LensModel });
     } else {
         lines.push({ text: modelString });
     }
-    
-    // Priorität 2: Kerneinstellungen
     let settings = [];
     if (tags.FocalLength) settings.push(`${tags.FocalLength}mm`);
     if (tags.FNumber) settings.push(`f/${tags.FNumber}`);
@@ -179,8 +165,6 @@ function getFormattedMetadata(exifData) {
     }
     if (tags.ISOSpeedRatings) settings.push(`ISO ${tags.ISOSpeedRatings}`);
     if (settings.length > 0) lines.push({ text: settings.join(' · ') });
-
-    // Priorität 3: Aufnahmedatum
     if (tags.DateTimeOriginal) lines.push({ text: tags.DateTimeOriginal.split(" ")[0].replace(/:/g, '-') });
 
     return lines;
