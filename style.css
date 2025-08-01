@@ -1,57 +1,121 @@
 :root {
-    --bg-color: #121212;
-    --surface-color: #1e1e1e;
-    --primary-color: #3b82f6; /* Blaues Branding */
-    --primary-hover: #2563eb;
-    --mkbhd-red: #ff0000; /* Reines, kräftiges Rot */
-    --text-color: #e0e0e0;
-    --text-muted-color: #888888;
-    --border-color: #333;
-    --border-radius-large: 16px; /* Stärkere Rundung */
-    --border-radius-medium: 12px;
+    /* Farbpalette: Blau als Primärfarbe, aber jetzt auf einer glasartigen Oberfläche */
+    --primary-color: #007aff; /* Klassisches Apple-Blau */
+    --primary-hover: #0a84ff;
+    --mkbhd-red: #ff0000;
+    --text-color: #f5f5f7; /* Leicht gebrochenes Weiß für bessere Lesbarkeit */
+    --text-muted-color: #a1a1a6;
+    
+    /* Liquid Glass Material-Eigenschaften */
+    --glass-bg: rgba(255, 255, 255, 0.1); /* Semi-transparenter weißer Hintergrund */
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --blur-amount: 15px; /* Stärkerer Blur für den Glas-Effekt */
+
+    /* Stärkere, konsistente Rundungen */
+    --border-radius-card: 22px;
+    --border-radius-button: 16px;
 }
 
-body { font-family: 'Exo 2', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; }
-.app-header { background-color: var(--surface-color); text-align: center; padding: 1rem; border-bottom: 1px solid var(--border-color); font-size: 1.2rem; font-weight: 700; }
+body {
+    font-family: 'Exo 2', sans-serif;
+    color: var(--text-color);
+    margin: 0;
+    /* WICHTIG: Der Hintergrund wird hier nicht mehr gesetzt, sondern im Pseudo-Element */
+    background-color: #000;
+}
+
+/* Der MacOS-inspirierte Hintergrund-Gradient */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* Liegt hinter allem anderen Inhalt */
+    
+    /* Mehrere radiale Gradienten für einen komplexen, weichen Look */
+    background: 
+        radial-gradient(circle at top left, hsla(280, 80%, 30%, 0.5), transparent 40%),
+        radial-gradient(circle at bottom right, hsla(190, 90%, 50%, 0.6), transparent 50%),
+        radial-gradient(circle at center, hsla(30, 90%, 60%, 0.4), transparent 60%),
+        #121212; /* Fallback-Farbe */
+    
+    animation: gradient-flow 30s ease-in-out infinite;
+}
+
+@keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Alle UI-Elemente bekommen den Liquid-Glass-Effekt */
+.app-header, .global-actions-bar, .image-card, #drop-zone {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--blur-amount));
+    -webkit-backdrop-filter: blur(var(--blur-amount)); /* Für Safari-Kompatibilität */
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+}
+
+.app-header {
+    text-align: center;
+    padding: 1.2rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
 .app-header h1 i { color: var(--primary-color); }
+
 .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
 #upload-container.hidden { display: none; }
-#drop-zone { border: 3px dashed var(--border-color); border-radius: var(--border-radius-large); background-color: var(--surface-color); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; }
-#drop-zone.drag-over { background-color: #2a2a2a; border-color: var(--primary-color); }
+
+#drop-zone {
+    border-radius: var(--border-radius-card);
+    padding: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 3px dashed var(--glass-border); /* Gestrichelter Glas-Rand */
+}
+#drop-zone.drag-over { border-color: var(--primary-color); }
 .drop-icon { font-size: 3rem; color: var(--primary-color); }
-.global-actions-bar { padding: 1rem; margin: 2rem 0; background-color: var(--surface-color); border-radius: var(--border-radius-medium); text-align: center; display: flex; justify-content: center; gap: 1rem; }
+
+.global-actions-bar {
+    padding: 1rem;
+    margin: 2rem 0;
+    border-radius: var(--border-radius-button);
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
 
 #image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
 
 .image-card {
-    background-color: var(--surface-color);
-    border-radius: var(--border-radius-large);
+    border-radius: var(--border-radius-card);
     overflow: hidden;
-    /* Weicher "Liquid Glass" Schatten */
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
     position: relative;
-    border: 2px solid transparent; /* Platzhalter für den Auswahlrahmen */
+    border-width: 2px; /* Dickerer Rand für besseren Leuchteffekt */
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Auswahlmodus-Stile */
 .selection-active .image-card { cursor: pointer; }
 .selection-active .image-card.selected {
-    /* "Apple Intelligence" Glowing/Bleeding Border */
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px var(--surface-color), 0 0 20px 5px rgba(59, 130, 246, 0.4), inset 0 0 12px 2px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 2px var(--surface-color), 0 0 30px 8px rgba(0, 122, 255, 0.5), inset 0 0 15px 3px rgba(0, 122, 255, 0.15);
 }
 
-/* Der Auswahl-Kreis */
 .selection-indicator {
     position: absolute;
     top: 1rem;
     right: 1rem;
     width: 2rem;
     height: 2rem;
-    background-color: rgba(0,0,0,0.5);
-    backdrop-filter: blur(5px); /* Glas-Effekt */
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--blur-amount));
+    border: 2px solid var(--glass-border);
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -60,33 +124,36 @@ body { font-family: 'Exo 2', sans-serif; background-color: var(--bg-color); colo
     opacity: 0;
     transform: scale(0.8);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 10;
 }
 .selection-active .selection-indicator { opacity: 1; transform: scale(1); }
-.image-card.selected .selection-indicator {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    color: white;
-}
-.selection-indicator i {
-    opacity: 0;
-    transform: scale(0.5);
-    transition: all 0.2s ease-out;
-}
+.image-card.selected .selection-indicator { background-color: var(--primary-color); border-color: transparent; color: white; }
+.selection-indicator i { opacity: 0; transform: scale(0.5); transition: all 0.2s ease-out; }
 .image-card.selected .selection-indicator i { opacity: 1; transform: scale(1); }
 
-/* Letterboxing-Stil für Canvas */
-.canvas-container { width: 100%; height: 220px; background-color: #000; display: flex; justify-content: center; align-items: center; }
+.canvas-container { width: 100%; height: 220px; background-color: #000; display: flex; justify-content: center; align-items: center; border-radius: 0 0 1px 1px; /* leichter Trick, um Aliasing zu verhindern */ }
 .canvas-container canvas { max-width: 100%; max-height: 100%; }
 
-.controls { padding: 1rem; }
+.controls { padding: 1.2rem; border-top: 1px solid var(--glass-border); }
 .control-group { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-.slider { -webkit-appearance: none; width: 100%; height: 8px; background: #444; outline: none; border-radius: 4px; }
-.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--primary-color); cursor: pointer; border-radius: 50%; }
+.slider { -webkit-appearance: none; width: 100%; height: 8px; background: rgba(0,0,0,0.3); outline: none; border-radius: 4px; }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: var(--text-color); cursor: pointer; border-radius: 50%; border: 2px solid rgba(0,0,0,0.5); }
 
-.button { background: #444; color: var(--text-color); border: none; padding: 0.8rem 1.2rem; border-radius: var(--border-radius-medium); cursor: pointer; font-weight: bold; font-family: 'Exo 2', sans-serif; transition: all 0.2s; white-space: nowrap; }
-.button:hover:not(:disabled) { background-color: #555; transform: translateY(-2px); }
-.button.button-primary { background-color: var(--primary-color); }
+.button {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-color);
+    padding: 0.8rem 1.2rem;
+    border-radius: var(--border-radius-button);
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Exo 2', sans-serif;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.button:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+.button.button-primary { background-color: var(--primary-color); border-color: transparent; }
 .button.button-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
-.button:disabled { background-color: #2a2a2a; color: #555; cursor: not-allowed; transform: none; }
+.button:disabled { background-color: rgba(50,50,50,0.5); color: #777; cursor: not-allowed; transform: none; border-color: transparent; }
 
 @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
