@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OpenImageLabel - Profi Metadaten-Generator</title>
     
-    <!-- NEUE Google Font "Exo 2" & Font Awesome Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
@@ -19,31 +18,28 @@
         <h1><i class="fa-solid fa-camera-retro"></i> OpenImageLabel</h1>
     </header>
 
-    <main class="container">
-        <!-- Drop-Zone für den Upload -->
+    <main id="app-container" class="container">
+        <!-- Upload-Zone -->
         <div id="upload-container">
             <div id="drop-zone">
                 <div class="drop-zone-prompt">
                     <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
                     <h2>Bilder hierher ziehen oder klicken</h2>
-                    <p>Unterstützt mehrere JPEG-Dateien gleichzeitig</p>
                 </div>
             </div>
         </div>
         <input type="file" id="file-input" accept="image/jpeg" multiple hidden>
 
-        <!-- Aktionen für ausgewählte Bilder -->
+        <!-- Globale Aktionen -->
         <div id="global-actions" class="global-actions-bar" style="display: none;">
-            <h3>Download Optionen</h3>
-            <button id="download-selected-btn" class="button" disabled><i class="fa-solid fa-check-double"></i> Auswahl herunterladen</button>
-            <button id="download-all-btn" class="button button-primary"><i class="fa-solid fa-download"></i> Alle herunterladen</button>
+            <button id="selection-mode-btn" class="button"><i class="fa-solid fa-check-to-slot"></i> Auswählen zum Herunterladen</button>
+            <button id="download-selected-btn" class="button button-primary" disabled><i class="fa-solid fa-download"></i> Auswahl herunterladen</button>
         </div>
 
-        <!-- Galerie, in die die Bildkarten eingefügt werden -->
+        <!-- Galerie -->
         <div id="image-gallery"></div>
     </main>
 
-    <!-- Skripte -->
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <script src="main.js"></script>
 
