@@ -1,6 +1,7 @@
 'use strict';
 
 // --- Globale Variablen und UI-Elemente ---
+const uploadContainer = document.getElementById('upload-container');
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 const gallery = document.getElementById('image-gallery');
@@ -23,9 +24,16 @@ downloadSelectedBtn.addEventListener('click', () => {
     downloadImages(selected);
 });
 
-// --- Hauptfunktionen ---
+
+// --- Kernlogik ---
+
 function handleFiles(files) {
+    if (files.length === 0) return;
+
+    // UI-Anpassungen beim ersten Upload
+    uploadContainer.classList.add('hidden');
     globalActions.style.display = 'block';
+
     for (const file of files) {
         if (file.type === 'image/jpeg') {
             createImageCard(file);
@@ -38,7 +46,10 @@ function createImageCard(file) {
     const card = document.createElement('div');
     card.className = 'image-card';
     card.innerHTML = `
-        <canvas></canvas>
+        <div class="canvas-container">
+            <div class="placeholder"><i class="fa-solid fa-spinner fa-spin"></i></div>
+            <canvas></canvas>
+        </div>
         <div class="controls">
             <div class="control-group">
                 <label><i class="fa-solid fa-text-height"></i> Größe</label>
@@ -49,11 +60,10 @@ function createImageCard(file) {
                 <input type="range" class="slider transparency-slider" min="0" max="100" value="80">
             </div>
             <div class="card-actions">
-                <div class="select-group">
-                    <input type="checkbox" id="check-${imageId}">
-                    <label for="check-${imageId}">Auswählen</label>
-                </div>
-                <a class="button download-single-btn">Speichern</a>
+                <label class="select-group">
+                    <input type="checkbox" class="select-checkbox" id="check-${imageId}">
+                    <span>Auswählen</span>
+                </label>
             </div>
         </div>`;
     gallery.appendChild(card);
@@ -62,18 +72,18 @@ function createImageCard(file) {
         id: imageId,
         file: file,
         canvas: card.querySelector('canvas'),
-        metadata: {},
+        placeholder: card.querySelector('.placeholder'),
+        metadata: [],
         settings: { fontSize: 30, alpha: 0.8 },
         ui: {
             fontSizeSlider: card.querySelector('.font-size-slider'),
             transparencySlider: card.querySelector('.transparency-slider'),
             checkbox: card.querySelector(`#check-${imageId}`),
-            downloadBtn: card.querySelector('.download-single-btn')
         }
     };
     imageCollection.push(imageState);
 
-    // Event Listeners für die neuen UI-Elemente der Karte
+    // Event Listeners für die neuen UI-Elemente
     imageState.ui.fontSizeSlider.addEventListener('input', (e) => {
         imageState.settings.fontSize = parseInt(e.target.value);
         redrawCanvas(imageState);
@@ -82,20 +92,27 @@ function createImageCard(file) {
         imageState.settings.alpha = parseInt(e.target.value) / 100;
         redrawCanvas(imageState);
     });
-    imageState.ui.downloadBtn.addEventListener('click', () => downloadImages([imageState]));
+    imageState.ui.checkbox.addEventListener('change', updateGlobalButtonState);
 
-    processImageFile(imageState);
+    // Starte die Bildverarbeitung
+    processImage(imageState);
 }
 
-function processImageFile(imageState) {
+function processImage(imageState) {
     const reader = new FileReader();
     reader.onload = (e) => {
         const image = new Image();
         image.onload = () => {
-            imageState.originalImage = image; // Speichere das Originalbild
+            imageState.originalImage = image; // Speichere das geladene Originalbild
+            imageState.canvas.width = image.width;
+            imageState.canvas.height = image.height;
+            // Passe das Seitenverhältnis des Containers an, um Layout-Sprünge zu vermeiden
+            imageState.canvas.parentElement.style.paddingTop = `${(image.height / image.width) * 100}%`;
+
             EXIF.getData(image, function() {
                 imageState.metadata = getFormattedMetadata(this);
                 redrawCanvas(imageState);
+                imageState.placeholder.style.display = 'none'; // Verstecke den Lade-Platzhalter
             });
         };
         image.src = e.target.result;
@@ -108,26 +125,31 @@ function redrawCanvas(imageState) {
     if (!originalImage) return;
 
     const ctx = canvas.getContext('2d');
-    canvas.width = originalImage.width;
-    canvas.height = originalImage.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Canvas leeren
     ctx.drawImage(originalImage, 0, 0);
 
+    const textLines = metadata.length;
+    if (textLines === 0) return;
+
+    const fontSize = canvas.width * (settings.fontSize / 1000); // Skalierbare Schriftgröße
+    const padding = fontSize;
+    const lineHeight = fontSize * 1.3;
+    const textBlockHeight = (textLines * lineHeight) + padding;
+
     // Zeichne einen semi-transparenten Balken für besseren Kontrast
-    const textHeight = (metadata.length + 0.5) * settings.fontSize * 1.2;
-    ctx.fillStyle = `rgba(0, 0, 0, ${settings.alpha - 0.2})`;
-    ctx.fillRect(0, canvas.height - textHeight, canvas.width, textHeight);
+    ctx.fillStyle = `rgba(0, 0, 0, ${settings.alpha * 0.7})`;
+    ctx.fillRect(0, canvas.height - textBlockHeight, canvas.width, textBlockHeight);
 
     // Text-Styling
-    ctx.font = `700 ${settings.fontSize}px 'Inter', sans-serif`;
+    ctx.font = `700 ${fontSize}px 'Inter', sans-serif`;
     ctx.textBaseline = 'bottom';
-    const padding = settings.fontSize;
+    ctx.fillStyle = `rgba(255, 255, 255, ${settings.alpha})`;
     let y = canvas.height - padding;
 
-    // Zeichne jede Zeile
+    // Zeichne jede Zeile von unten nach oben
     metadata.slice().reverse().forEach(line => {
-        ctx.fillStyle = `rgba(255, 255, 255, ${settings.alpha})`;
-        ctx.fillText(line, padding, y);
-        y -= settings.fontSize * 1.2;
+        ctx.fillText(line.text, padding, y, canvas.width - (padding * 2));
+        y -= lineHeight;
     });
 }
 
@@ -135,55 +157,44 @@ function getFormattedMetadata(exifData) {
     const tags = EXIF.getAllTags(exifData);
     let lines = [];
 
-    // Kameramodell & Objektiv (Antwort auf deine iPhone-Frage)
-    if (tags.Model) {
-        let modelString = tags.Model;
-        // iPhone-spezifische Logik: 'iPhone 11 Pro back triple camera 4.25mm f/1.8'
-        // Der Name der Kamera (z.B. 'back triple camera') ist Teil des LensModel-Strings.
-        if (tags.LensModel && tags.LensModel.includes(tags.Model)) {
-            modelString = tags.LensModel; // Nutze den detaillierteren Namen
-        } else if (tags.LensModel) {
-            modelString += ` | ${tags.LensModel}`;
-        }
-        lines.push(modelString);
+    // Priorität 1: Kameramodell & Objektiv
+    let modelString = tags.Model || 'Unbekannte Kamera';
+    if (tags.LensModel) {
+        lines.push({ text: tags.LensModel });
     }
+    lines.push({ text: modelString });
     
-    // Aufnahmeeinstellungen
+    // Priorität 2: Kerneinstellungen
     let settings = [];
-    if (tags.FocalLength) settings.push(`${tags.FocalLength.numerator / tags.FocalLength.denominator}mm`);
-    if (tags.FNumber) settings.push(`f/${tags.FNumber.numerator / tags.FNumber.denominator}`);
+    if (tags.FocalLength) settings.push(`${tags.FocalLength}mm`);
+    if (tags.FNumber) settings.push(`f/${tags.FNumber}`);
     if (tags.ExposureTime) {
         const et = tags.ExposureTime;
-        settings.push(et.denominator === 1 ? `${et.numerator}s` : `${et.numerator}/${et.denominator}s`);
+        settings.push(et < 1 ? `1/${Math.round(1/et)}s` : `${et}s`);
     }
     if (tags.ISOSpeedRatings) settings.push(`ISO ${tags.ISOSpeedRatings}`);
-    if (settings.length > 0) lines.push(settings.join(' · '));
+    if (settings.length > 0) lines.push({ text: settings.join(' · ') });
 
-    // Weitere technische Daten
-    let tech = [];
-    if (tags.ExposureProgram) tech.push(tags.ExposureProgram);
-    if (tags.MeteringMode) tech.push(tags.MeteringMode);
-    if (tech.length > 0) lines.push(tech.join(' · '));
-
-    // GPS-Daten
-    if (tags.GPSLatitude && tags.GPSLongitude) {
-        const lat = tags.GPSLatitude;
-        const lon = tags.GPSLongitude;
-        const latDec = lat[0] + (lat[1]/60) + (lat[2]/3600);
-        const lonDec = lon[0] + (lon[1]/60) + (lon[2]/3600);
-        lines.push(`GPS: ${latDec.toFixed(4)}° ${tags.GPSLatitudeRef}, ${lonDec.toFixed(4)}° ${tags.GPSLongitudeRef}`);
-    }
+    // Priorität 3: Aufnahmedatum
+    if (tags.DateTimeOriginal) lines.push({ text: tags.DateTimeOriginal });
 
     return lines;
 }
 
+function updateGlobalButtonState() {
+    const anySelected = imageCollection.some(img => img.ui.checkbox.checked);
+    downloadSelectedBtn.disabled = !anySelected;
+}
+
 function downloadImages(imagesToDownload) {
+    if (imagesToDownload.length === 0) {
+        alert("Bitte wähle zuerst Bilder für den Download aus.");
+        return;
+    }
     imagesToDownload.forEach((imageState, index) => {
         const a = document.createElement('a');
         a.href = imageState.canvas.toDataURL('image/jpeg', 0.95);
         a.download = imageState.file.name.replace(/\.jpeg$|\.jpg$/i, '-OpenImageLabel.jpg');
-        
-        // Füge eine kleine Verzögerung hinzu, damit der Browser nicht überlastet wird
         setTimeout(() => a.click(), index * 200);
     });
 }
