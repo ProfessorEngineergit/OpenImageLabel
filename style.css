@@ -1,51 +1,91 @@
+/* Grundlegende Stile und die neue Schriftart "Inter" */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f0f2f5;
-    color: #333;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #e0e0e0;
     margin: 0;
     padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
 .container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 30px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 900px;
     text-align: center;
 }
 
-h1 {
-    color: #1c1e21;
+/* Die Drop-Zone für den Upload */
+#drop-zone {
+    border: 3px dashed #444;
+    border-radius: 12px;
+    padding: 40px;
+    background-color: #2b2b2b;
+    transition: background-color 0.3s, border-color 0.3s;
+    cursor: pointer;
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-p {
-    color: #606770;
-    margin-bottom: 25px;
+/* Visuelles Feedback, wenn eine Datei über die Zone gezogen wird */
+#drop-zone.drag-over {
+    background-color: #333;
+    border-color: #007bff;
 }
 
-/* Styling für den Upload-Button (das Label) */
-.upload-button {
+.drop-zone-prompt h1 {
+    margin-top: 0;
+    color: #ffffff;
+}
+
+.drop-zone-prompt p {
+    color: #aaa;
+    font-size: 1.2em;
+}
+
+/* Canvas-Styling (wird sichtbar, sobald ein Bild geladen ist) */
+#bild-canvas {
+    display: none; /* Standardmäßig versteckt */
+    max-width: 100%;
+    border-radius: 8px;
+}
+
+/* Ladeanzeige (Spinner) */
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto 0;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Allgemeiner Button-Stil */
+.button {
     display: inline-block;
     padding: 12px 25px;
     background-color: #007bff;
     color: white;
+    text-decoration: none;
     border-radius: 5px;
-    cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.2s ease-in-out;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.2s, transform 0.2s;
 }
 
-.upload-button:hover {
+.button:hover {
     background-color: #0056b3;
-}
-
-/* Styling für den Canvas-Bereich */
-#bild-canvas {
-    display: block;
-    max-width: 100%;
-    margin: 30px auto 0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    transform: translateY(-2px);
 }
