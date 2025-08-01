@@ -4,7 +4,6 @@
     --mkbhd-red: #ff0000;
     --text-color: #f5f5f7;
     
-    /* Liquid Glass Properties */
     --liquid-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
     --liquid-border: 1px solid rgba(255, 255, 255, 0.15);
     --liquid-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
@@ -20,15 +19,13 @@ body {
     background-color: transparent;
 }
 
-/* KORREKTUR: Der dedizierte Container erhält das NEUE Hintergrundbild */
 #background-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1; /* Liegt hinter allem anderen */
-    /* HIER IST DIE ÄNDERUNG: */
+    z-index: -1;
     background: url('https://images.hdqwalls.com/wallpapers/glass-light-abstract-background-blue-background-3d-4k-dn.jpg') no-repeat center center;
     background-size: cover;
     animation: slow-pan 40s infinite alternate ease-in-out;
@@ -39,7 +36,17 @@ body {
     to { transform: scale(1.1); }
 }
 
-/* Alle UI-Elemente bekommen den Liquid-Glass-Effekt */
+/* KORREKTUR: Der Hauptcontainer ist jetzt nur noch ein Layout-Element und unsichtbar. */
+.container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    background: transparent; /* WICHTIG */
+    border: none;           /* WICHTIG */
+    box-shadow: none;       /* WICHTIG */
+}
+
+/* Die UI-Elemente selbst bekommen den Liquid-Glass-Effekt */
 .app-header, .global-actions-bar, .image-card, #drop-zone {
     background: var(--liquid-bg);
     border: var(--liquid-border);
@@ -58,7 +65,6 @@ body {
 }
 .app-header h1 i { color: var(--primary-color); }
 
-.container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
 #upload-container.hidden { display: none; }
 
 #drop-zone {
@@ -87,7 +93,7 @@ body {
     border-radius: var(--border-radius-liquid);
     overflow: hidden;
     position: relative;
-    border-width: 2px; 
+    border-width: 2px;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
