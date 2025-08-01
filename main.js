@@ -135,8 +135,11 @@ function redrawCanvas(imageState) {
     const padding = fontSize * 1.5;
     const lineHeight = fontSize * 1.2;
     
-    // KORREKTUR: Alle Schatten-Eigenschaften sind entfernt.
+    // KORREKTUR: Alle Schatten-Eigenschaften werden entfernt für einen sauberen Look.
     ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
 
     // KORREKTUR: Wir erzwingen die Linksbündigkeit vor jedem Zeichnen.
     ctx.textAlign = 'left'; 
@@ -145,6 +148,7 @@ function redrawCanvas(imageState) {
     
     let textY = canvas.height - padding;
     metadata.slice().reverse().forEach(line => {
+        // KORREKTUR: MKBHD-Rot wird hier verwendet.
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
         ctx.fillText(line.text, padding, textY, canvas.width - (padding * 2));
         textY -= lineHeight;
@@ -155,9 +159,7 @@ function getFormattedMetadata(exifData) {
     const tags = EXIF.getAllTags(exifData);
     let lines = [];
     
-    // Das erste Element ist immer die Kamera in Rot.
     lines.push({ text: tags.Model || 'Unbekannte Kamera', color: 'red' });
-    
     if (tags.LensModel) { lines.push({ text: tags.LensModel, color: 'white' }); }
     
     let settings = [];
@@ -174,7 +176,6 @@ function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
     
     // KORREKTUR: Dies ist der zuverlässigste Weg, den Modus zu aktivieren/deaktivieren.
-    // Wir fügen einfach eine Klasse zum Hauptcontainer hinzu. Das CSS erledigt den Rest.
     appContainer.classList.toggle('selection-active', isSelectionModeActive);
     
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
