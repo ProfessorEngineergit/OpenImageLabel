@@ -2,19 +2,32 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Bild-Metadaten-Extraktor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metadaten-Generator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <h1>Lade ein Bild hoch, um die Metadaten anzuzeigen</h1>
+    <div class="container">
+        <h1>Bild-Metadaten-Generator</h1>
+        <p>Lade ein JPEG-Bild hoch. Die Metadaten werden automatisch ausgelesen und auf das Bild gezeichnet.</p>
 
-    <input type="file" id="bild-upload" accept="image/jpeg, image/png">
+        <!-- Der eigentliche Input ist versteckt, wir stylen das Label stattdessen -->
+        <input type="file" id="bild-upload" accept="image/jpeg" style="display: none;">
+        
+        <!-- Dieses Label sieht aus wie ein Button und ist mit dem Input verknüpft -->
+        <label for="bild-upload" class="upload-button">Bild auswählen...</label>
 
-    <canvas id="bild-canvas"></canvas>
+        <!-- Hier wird das Bild samt Metadaten angezeigt -->
+        <canvas id="bild-canvas"></canvas>
+    </div>
 
+    <!-- WICHTIG: Die Skripte am Ende des Body laden -->
+    <!-- 1. Externe Bibliothek für das Auslesen der EXIF-Daten -->
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-    <script src="app.js"></script>
+    
+    <!-- 2. Unsere eigene Logik -->
+    <script src="main.js"></script>
 
 </body>
 </html>
