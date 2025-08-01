@@ -3,30 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metadaten-Generator</title>
+    <title>Profi Metadaten-Generator</title>
+    
+    <!-- Einbindung der Google Font "Inter" -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
-        <h1>Bild-Metadaten-Generator</h1>
-        <p>Lade ein JPEG-Bild hoch. Die Metadaten werden automatisch ausgelesen und auf das Bild gezeichnet.</p>
-
-        <!-- Der eigentliche Input ist versteckt, wir stylen das Label stattdessen -->
-        <input type="file" id="bild-upload" accept="image/jpeg" style="display: none;">
         
-        <!-- Dieses Label sieht aus wie ein Button und ist mit dem Input verknüpft -->
-        <label for="bild-upload" class="upload-button">Bild auswählen...</label>
+        <!-- Drop-Zone für den Upload -->
+        <div id="drop-zone">
+            <div class="drop-zone-prompt">
+                <h1>Profi Metadaten-Generator</h1>
+                <p>JPEG-Bild hierher ziehen oder klicken</p>
+                <div class="loader" id="loader" style="display: none;"></div>
+            </div>
+            <!-- Canvas ist jetzt IN der Drop-Zone, um es nach dem Upload anzuzeigen -->
+            <canvas id="bild-canvas"></canvas>
+        </div>
+        
+        <!-- Der eigentliche Input ist komplett unsichtbar und wird per Klick auf die Zone ausgelöst -->
+        <input type="file" id="bild-upload" accept="image/jpeg" hidden>
 
-        <!-- Hier wird das Bild samt Metadaten angezeigt -->
-        <canvas id="bild-canvas"></canvas>
+        <!-- Download-Button, anfangs versteckt -->
+        <a id="download-button" class="button" style="display: none;">Bild herunterladen</a>
+        
     </div>
 
-    <!-- WICHTIG: Die Skripte am Ende des Body laden -->
-    <!-- 1. Externe Bibliothek für das Auslesen der EXIF-Daten -->
+    <!-- Skripte bleiben am Ende -->
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-    
-    <!-- 2. Unsere eigene Logik -->
     <script src="main.js"></script>
 
 </body>
