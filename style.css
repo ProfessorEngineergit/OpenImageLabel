@@ -1,1 +1,16 @@
+body {
+    font-family: sans-serif;
+    text-align: center;
+    background-color: #f0f0f0;
+}
 
+#bild-upload {
+    margin: 20px 0;
+}
+
+#bild-canvas {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    border: 1px solid #ccc;
+}
