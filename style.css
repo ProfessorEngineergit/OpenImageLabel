@@ -1,15 +1,17 @@
 :root {
+    /* Rotes Branding */
     --bg-color: #121212;
     --surface-color: #1e1e1e;
-    --primary-color: #3b82f6;
-    --primary-hover: #2563eb;
+    --primary-color: #E53935; /* kräftiges Rot */
+    --primary-hover: #C62828; /* dunkleres Rot für Hover */
     --text-color: #e0e0e0;
     --text-muted-color: #888888;
     --border-color: #333;
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    /* Neue Schriftart "Exo 2" */
+    font-family: 'Exo 2', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
@@ -21,6 +23,7 @@ body {
     padding: 1rem;
     border-bottom: 1px solid var(--border-color);
     font-size: 1.2rem;
+    font-weight: 700;
 }
 .app-header h1 i { color: var(--primary-color); }
 
@@ -73,11 +76,10 @@ body {
     position: relative;
     background-color: #000;
 }
-/* Platzhalter für das Seitenverhältnis, bevor das Bild geladen ist */
 .canvas-container::before {
     content: '';
     display: block;
-    padding-top: 66.66%; /* 3:2 Seitenverhältnis als Standard */
+    padding-top: 66.66%;
 }
 .canvas-container canvas {
     position: absolute;
@@ -109,7 +111,7 @@ body {
 .card-actions { border-top: 1px solid var(--border-color); padding-top: 1rem; }
 .select-group { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
 
-.button { background: #444; color: var(--text-color); border: none; padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.2s; }
+.button { background: #444; color: var(--text-color); border: none; padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Exo 2', sans-serif; transition: background-color 0.2s; }
 .button:hover:not(:disabled) { background-color: #555; }
 .button.button-primary { background-color: var(--primary-color); }
 .button.button-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
