@@ -45,7 +45,6 @@ function createImageCard(file) {
     const card = document.createElement('div');
     card.className = 'image-card';
     card.id = imageId;
-    // KORREKTUR: Wir fügen eine echte Checkbox für die Auswahl hinzu.
     card.innerHTML = `
         <input type="checkbox" class="selection-checkbox" id="check-${imageId}">
         <div class="canvas-container"><canvas></canvas></div>
@@ -72,21 +71,14 @@ function createImageCard(file) {
         ui: {
             fontSizeSlider: card.querySelector('.font-size-slider'),
             transparencySlider: card.querySelector('.transparency-slider'),
-            // Wir greifen auf die neue Checkbox zu.
             checkbox: card.querySelector('.selection-checkbox'),
         }
     };
     imageCollection.push(imageState);
 
-    /* =======================================================
-     * FINALE, ROBUSTE AUSWAHL-LOGIK
-     * ======================================================= */
     imageState.ui.checkbox.addEventListener('change', () => {
-        // 1. Aktualisiere den internen Status basierend auf der Checkbox.
         imageState.isSelected = imageState.ui.checkbox.checked;
-        // 2. Füge die .selected Klasse zur Karte hinzu (oder entferne sie).
         imageState.cardElement.classList.toggle('selected', imageState.isSelected);
-        // 3. Aktualisiere den Download-Button.
         updateGlobalButtonState();
     });
 
@@ -159,16 +151,22 @@ function getFormattedMetadata(exifData) {
     return lines;
 }
 
+/* =======================================================
+ * FINALE, ROBUSTE AUSWAHL-LOGIK
+ * ======================================================= */
 function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
-    // Die Klasse wird auf dem Body umgeschaltet, um die Checkboxen anzuzeigen/zu verbergen.
-    document.body.classList.toggle('selection-active', isSelectionModeActive);
+    
+    // Gehe durch jede einzelne Bildkarte, die wir erstellt haben.
+    imageCollection.forEach(imgState => {
+        // Mache die Checkbox direkt sichtbar oder unsichtbar. Kein Raten, kein CSS-Konflikt.
+        imgState.ui.checkbox.style.display = isSelectionModeActive ? 'block' : 'none';
+    });
     
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
     
     if (!isSelectionModeActive) {
         imageCollection.forEach(img => {
-            // Wenn der Modus beendet wird, werden alle Checkboxen zurückgesetzt und die Auswahl aufgehoben.
             img.ui.checkbox.checked = false;
             img.isSelected = false;
             img.cardElement.classList.remove('selected');
