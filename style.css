@@ -2,16 +2,13 @@
     --primary-color: #007aff;
     --mkbhd-red: #ff0000;
     --text-color: #f5f5f7;
-    --card-bg: rgba(30, 30, 30, 0.7); /* Leicht transparenter, dunkler Hintergrund für die Karten */
+    --card-bg: rgba(30, 30, 30, 0.7);
     --card-border: 1px solid rgba(255, 255, 255, 0.2);
     --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     --border-radius-card: 24px;
     --border-radius-button: 18px;
 }
 
-/* =======================================================
- * GARANTIERTE LÖSUNG FÜR DEN HINTERGRUND
- * ======================================================= */
 html {
     height: 100%;
     background: url('https://images.hdqwalls.com/wallpapers/glass-light-abstract-background-blue-background-3d-4k-dn.jpg') no-repeat center center fixed;
@@ -22,7 +19,7 @@ body {
     font-family: 'Exo 2', sans-serif;
     color: var(--text-color);
     margin: 0;
-    background-color: transparent; /* Lässt den html-Hintergrund durchscheinen */
+    background-color: transparent;
 }
 
 .main-container {
@@ -76,12 +73,12 @@ body {
     border-radius: var(--border-radius-card);
     overflow: hidden;
     position: relative;
-    border-width: 3px; /* Dickerer Rand für klares Feedback */
+    border: 3px solid transparent; /* Platzhalter für den Auswahlrand */
     transition: all 0.3s;
 }
 
 /* =======================================================
- * EINFACHE & ROBUSTE AUSWAHL-STILE
+ * EINFACHSTE & ROBUSTE AUSWAHL-STILE
  * ======================================================= */
 .selection-checkbox {
     position: absolute;
@@ -90,14 +87,11 @@ body {
     width: 1.5rem;
     height: 1.5rem;
     z-index: 10;
-    /* Standardmäßig unsichtbar */
+    /* Die Checkbox ist standardmäßig komplett versteckt. JS macht sie sichtbar. */
     display: none; 
 }
-/* Wenn Auswahlmodus aktiv ist, Checkbox anzeigen */
-body.selection-active .selection-checkbox {
-    display: block;
-}
-/* Wenn die Karte ausgewählt ist, blauen Rand anzeigen */
+
+/* Wenn die Karte ausgewählt ist (via JS-Klasse), wird der blaue Rand angezeigt. */
 .image-card.selected {
     border-color: var(--primary-color);
     box-shadow: 0 0 20px rgba(0, 122, 255, 0.5);
