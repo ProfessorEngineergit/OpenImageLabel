@@ -3,18 +3,18 @@
     --mkbhd-red: #ff0000;
     --text-color: #f5f5f7;
     
-    /* Ein heller, scharfer Rand, der wie eine Lichtkante auf Glas wirkt */
+    --liquid-bg: transparent; /* Wichtig für den neuen Effekt */
     --liquid-border: 1px solid rgba(255, 255, 255, 0.2);
-    /* Ein sehr weicher Schatten für die schwebende Optik */
     --liquid-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
 
-    /* Größere Radien für einen weicheren Look */
     --border-radius-liquid: 30px;
     --border-radius-button: 20px;
 }
 
 html {
     min-height: 100%;
+    background: url('glass-light-abstract-background-blue-background-3d-4000x2250-8736.jpg') no-repeat center center fixed;
+    background-size: cover;
 }
 
 body {
@@ -22,23 +22,15 @@ body {
     color: var(--text-color);
     margin: 0;
     padding: 2rem;
-    background: url('glass-light-abstract-background-blue-background-3d-4000x2250-8736.jpg') no-repeat center center fixed;
-    background-size: cover;
+    background: transparent;
 }
 
-/* =======================================================
- * DAS NEUE "LIQUID GLASS"-MATERIAL
- * ======================================================= */
 .app-header, .global-actions-bar, .image-card, #drop-zone {
-    /* WICHTIG: Das Element selbst hat keinen eigenen Hintergrund */
-    background: transparent;
-    
-    /* WICHTIG: Der Blur-Effekt wird wieder eingeführt */
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-
+    background: var(--liquid-bg);
     border: var(--liquid-border);
     box-shadow: var(--liquid-shadow);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
 }
 
 .app-header {
@@ -81,41 +73,13 @@ body {
     border-radius: var(--border-radius-liquid);
     position: relative;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    /* `overflow: hidden` wird entfernt, damit der Morph-Effekt sichtbar wird */
 }
 
 /* =======================================================
- * DER "MORPHING CORNERS"-EFFEKT
- * =======================================================
- * Ein Pseudo-Element wird HINTER der Karte positioniert.
- * Es enthält vier große, weiße Kreise an den Ecken.
- * Diese Kreise werden extrem stark geblurrt, sodass sie zu
- * einer einzigen, organischen Form verschmelzen.
-*/
-.image-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1; /* Liegt hinter dem Canvas, aber über dem Haupt-Hintergrund */
-    border-radius: inherit; /* Nimmt die Rundung der Karte an */
-
-    /* Vier radiale Gradienten simulieren Kreise in den Ecken */
-    background: 
-        radial-gradient(circle at 0 0, rgba(255,255,255,0.2), transparent 25%),
-        radial-gradient(circle at 100% 0, rgba(255,255,255,0.2), transparent 25%),
-        radial-gradient(circle at 0 100%, rgba(255,255,255,0.2), transparent 25%),
-        radial-gradient(circle at 100% 100%, rgba(255,255,255,0.2), transparent 25%);
-
-    /* Dieser starke Blur lässt die Kreise zu einer weichen Form verschmelzen */
-    filter: blur(40px);
-}
-
-
-.selection-active .image-card { cursor: pointer; }
-.selection-active .image-card.selected {
+ * FINALER AUSWAHL-STIL
+ * ======================================================= */
+.image-card.selectable { cursor: pointer; }
+.image-card.selected {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(0,0,0,0.5), 0 0 30px 8px rgba(0, 122, 255, 0.4);
 }
@@ -126,7 +90,7 @@ body {
     right: 1rem;
     width: 2rem;
     height: 2rem;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.4);
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     display: flex;
@@ -137,9 +101,8 @@ body {
     transform: scale(0.8);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     z-index: 10;
-    backdrop-filter: blur(5px);
 }
-.selection-active .selection-indicator { opacity: 1; transform: scale(1); }
+.app-container.selection-active .selection-indicator { opacity: 1; transform: scale(1); }
 .image-card.selected .selection-indicator { background-color: var(--primary-color); border-color: transparent; color: white; }
 .selection-indicator i { opacity: 0; transform: scale(0.5); transition: all 0.2s ease-out; }
 .image-card.selected .selection-indicator i { opacity: 1; transform: scale(1); }
@@ -153,7 +116,7 @@ body {
 .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: var(--text-color); cursor: pointer; border-radius: 50%; border: 2px solid rgba(0,0,0,0.5); }
 
 .button {
-    background: transparent;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
     border: var(--liquid-border);
     color: var(--text-color);
     padding: 0.8rem 1.2rem;
@@ -166,7 +129,7 @@ body {
 }
 .button:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
 .button.button-primary { background-color: var(--primary-color); border-color: transparent; }
-.button.button-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
+.button.button-primary:hover:not(:disabled) { background-color: #0a84ff; }
 .button:disabled { background-color: rgba(50,50,50,0.2); color: #777; cursor: not-allowed; transform: none; border-color: rgba(255,255,255,0.1); }
 
 @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
