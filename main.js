@@ -45,8 +45,9 @@ function createImageCard(file) {
     const card = document.createElement('div');
     card.className = 'image-card';
     card.id = imageId;
+    // KORREKTUR: Wir fügen eine echte Checkbox für die Auswahl hinzu.
     card.innerHTML = `
-        <div class="selection-indicator"><i class="fa-solid fa-check"></i></div>
+        <input type="checkbox" class="selection-checkbox" id="check-${imageId}">
         <div class="canvas-container"><canvas></canvas></div>
         <div class="controls">
             <div class="control-group">
@@ -71,28 +72,22 @@ function createImageCard(file) {
         ui: {
             fontSizeSlider: card.querySelector('.font-size-slider'),
             transparencySlider: card.querySelector('.transparency-slider'),
+            // Wir greifen auf die neue Checkbox zu.
+            checkbox: card.querySelector('.selection-checkbox'),
         }
     };
     imageCollection.push(imageState);
 
     /* =======================================================
-     * FINALER Klick-Listener für die Auswahl
+     * FINALE, ROBUSTE AUSWAHL-LOGIK
      * ======================================================= */
-    card.addEventListener('click', (event) => {
-        // Ignoriere Klicks auf die Steuerelemente, damit die Slider noch funktionieren.
-        if (event.target.classList.contains('slider')) {
-            return;
-        }
-        
-        // Führe die Auswahl-Logik NUR aus, wenn der Auswahlmodus global aktiv ist.
-        if (isSelectionModeActive) {
-            // 1. Ändere den internen Status des Bildes
-            imageState.isSelected = !imageState.isSelected;
-            // 2. Füge die .selected Klasse zum CSS hinzu (oder entferne sie), um die visuellen Änderungen (Rahmen, Haken) zu triggern.
-            imageState.cardElement.classList.toggle('selected', imageState.isSelected);
-            // 3. Aktualisiere den Download-Button
-            updateGlobalButtonState();
-        }
+    imageState.ui.checkbox.addEventListener('change', () => {
+        // 1. Aktualisiere den internen Status basierend auf der Checkbox.
+        imageState.isSelected = imageState.ui.checkbox.checked;
+        // 2. Füge die .selected Klasse zur Karte hinzu (oder entferne sie).
+        imageState.cardElement.classList.toggle('selected', imageState.isSelected);
+        // 3. Aktualisiere den Download-Button.
+        updateGlobalButtonState();
     });
 
     imageState.ui.fontSizeSlider.addEventListener('input', (e) => { imageState.settings.fontSize = parseInt(e.target.value); redrawCanvas(imageState); });
@@ -166,13 +161,15 @@ function getFormattedMetadata(exifData) {
 
 function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
-    // Die Klasse wird jetzt auf dem BODY-Tag umgeschaltet, was die CSS-Regeln zuverlässig aktiviert.
+    // Die Klasse wird auf dem Body umgeschaltet, um die Checkboxen anzuzeigen/zu verbergen.
     document.body.classList.toggle('selection-active', isSelectionModeActive);
     
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
     
     if (!isSelectionModeActive) {
         imageCollection.forEach(img => {
+            // Wenn der Modus beendet wird, werden alle Checkboxen zurückgesetzt und die Auswahl aufgehoben.
+            img.ui.checkbox.checked = false;
             img.isSelected = false;
             img.cardElement.classList.remove('selected');
         });
