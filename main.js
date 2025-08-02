@@ -24,7 +24,7 @@ selectionModeBtn.addEventListener('click', toggleSelectionMode);
 downloadSelectedBtn.addEventListener('click', () => {
     const selected = imageCollection.filter(img => img.isSelected);
     downloadImages(selected);
-    toggleSelectionMode(true); // Auswahlmodus nach Download beenden
+    toggleSelectionMode(true);
 });
 
 // --- Kernlogik ---
@@ -46,17 +46,21 @@ function createImageCard(file) {
     const card = document.createElement('div');
     card.className = 'image-card';
     card.id = imageId;
+
+    // KORREKTUR: Neue HTML-Struktur mit "card-content" für den Filter
     card.innerHTML = `
-        <div class="selection-indicator"><i class="fa-solid fa-check"></i></div>
-        <div class="canvas-container"><canvas></canvas></div>
-        <div class="controls">
-            <div class="control-group">
-                <i class="fa-solid fa-text-height"></i>
-                <input type="range" class="slider font-size-slider" min="10" max="100" value="50">
-            </div>
-            <div class="control-group">
-                <i class="fa-solid fa-eye-dropper"></i>
-                <input type="range" class="slider transparency-slider" min="0" max="100" value="95">
+        <div class="card-content">
+            <div class="selection-indicator"><i class="fa-solid fa-check"></i></div>
+            <div class="canvas-container"><canvas></canvas></div>
+            <div class="controls">
+                <div class="control-group">
+                    <i class="fa-solid fa-text-height"></i>
+                    <input type="range" class="slider font-size-slider" min="10" max="100" value="50">
+                </div>
+                <div class="control-group">
+                    <i class="fa-solid fa-eye-dropper"></i>
+                    <input type="range" class="slider transparency-slider" min="0" max="100" value="95">
+                </div>
             </div>
         </div>`;
     gallery.appendChild(card);
