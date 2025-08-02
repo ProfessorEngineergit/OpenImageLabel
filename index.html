@@ -3,17 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenImageLabel - Profi Metadaten-Generator</title>
+    <title>OpenImageLabel - Liquid Glass</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     
-    <!-- Cache-Buster, um sicherzustellen, dass die neue CSS-Datei geladen wird -->
-    <link rel="stylesheet" href="style.css?v=FINAL">
+    <link rel="stylesheet" href="style.css?v=LIQUID">
 </head>
-<body id="app-container"> <!-- Der Body ist jetzt der Hauptcontainer -->
+<body id="app-container">
+
+    <!-- ======================================================= -->
+    <!-- SVG-Filter für den Liquid/Morphing-Effekt -->
+    <!-- Dieser Block ist unsichtbar, stellt aber den Effekt bereit. -->
+    <!-- ======================================================= -->
+    <svg style="position: absolute; width: 0; height: 0;">
+        <defs>
+            <filter id="liquid-morph">
+                <!-- Schritt 1: Alles in der Galerie stark weichzeichnen -->
+                <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur" />
+                <!-- Schritt 2: Den Alpha-Kanal (Transparenz) schärfen -->
+                <!-- Dies erzeugt die harten Kanten um die weichen, verschmolzenen Formen -->
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 -10" result="morph" />
+                <feBlend in="SourceGraphic" in2="morph" />
+            </filter>
+        </defs>
+    </svg>
 
     <header class="app-header">
         <h1><i class="fa-solid fa-camera-retro"></i> OpenImageLabel</h1>
@@ -34,6 +50,7 @@
         <button id="download-selected-btn" class="button button-primary" disabled><i class="fa-solid fa-download"></i> Auswahl herunterladen</button>
     </div>
 
+    <!-- Die Galerie bekommt jetzt den Filter zugewiesen -->
     <div id="image-gallery"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
