@@ -3,38 +3,40 @@
     --mkbhd-red: #ff0000;
     --text-color: #f5f5f7;
     
-    --liquid-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
-    --liquid-border: 1px solid rgba(255, 255, 255, 0.1);
-    --liquid-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
+    /* NEUE "Liquid Glass" Properties */
+    /* Ein sehr subtiler Gradient, der einen leichten Glanz simuliert */
+    --liquid-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+    /* Ein scharfer, heller Rand, der wie eine Kante von Glas wirkt */
+    --liquid-border: 1px solid rgba(255, 255, 255, 0.2);
+    /* Ein weicher, dunkler Schatten, der Tiefe erzeugt */
+    --liquid-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 
     --border-radius-liquid: 24px;
     --border-radius-button: 18px;
 }
 
-/* =======================================================
- * FINALE LÖSUNG FÜR DEN HINTERGRUND
- * ======================================================= */
 html {
     min-height: 100%;
 }
 
 body {
-    /* 2. Der Body lässt den Hintergrund des html-Elements durchscheinen. */
     font-family: 'Exo 2', sans-serif;
     color: var(--text-color);
     margin: 0;
-    padding: 2rem; /* Abstand zum Rand */
+    padding: 2rem;
+    /* KORREKTUR: Der Dateipfad ist jetzt lokal, wie in Ihrem Code angegeben */
     background: url('glass-light-abstract-background-blue-background-3d-4000x2250-8736.jpg') no-repeat center center fixed;
     background-size: cover;
 }
 
-/* Alle UI-Elemente bekommen den Liquid-Glass-Effekt */
+/* =======================================================
+ * HIER IST DIE ENTSCHEIDENDE ÄNDERUNG
+ * ======================================================= */
 .app-header, .global-actions-bar, .image-card, #drop-zone {
     background: var(--liquid-bg);
     border: var(--liquid-border);
     box-shadow: var(--liquid-shadow);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    /* `backdrop-filter` wird ENTFERNT, um den "Frosted"-Look zu beseitigen */
 }
 
 .app-header {
@@ -55,7 +57,9 @@ body {
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
-    border-style: dashed;
+    /* Der Rand ist jetzt solide, um besser zum Glas-Look zu passen */
+    border-style: solid; 
+    border-width: 2px;
 }
 #drop-zone.drag-over { border-color: var(--primary-color); background: rgba(0, 122, 255, 0.1); }
 .drop-icon { font-size: 3rem; color: var(--primary-color); text-shadow: 0 0 15px rgba(0, 122, 255, 0.5); }
@@ -86,6 +90,7 @@ body {
     box-shadow: 0 0 0 2px rgba(0,0,0,0.5), 0 0 30px 8px rgba(0, 122, 255, 0.4);
 }
 
+/* Der Auswahl-Indikator wird auch angepasst, ohne Blur */
 .selection-indicator {
     position: absolute;
     top: 1rem;
