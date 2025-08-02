@@ -12,23 +12,25 @@
     --border-radius-button: 18px;
 }
 
+/* 
+ * ======================================================================
+ *  DIE ENTSCHEIDENDE KORREKTUR
+ * ======================================================================
+ * Das Hintergrundbild wird auf das oberste Element, <html>, angewendet.
+ * Der Body wird explizit transparent gemacht, damit das Bild durchscheint.
+ * Dies ist die stabilste Methode, um Browser-Standardwerte zu überschreiben.
+*/
+html {
+    background: url('https://images.hdqwalls.com/wallpapers/glass-light-abstract-background-blue-background-3d-4k-dn.jpg') no-repeat center center fixed;
+    background-size: cover;
+    animation: slow-pan 40s infinite alternate ease-in-out;
+}
+
 body {
     font-family: 'Exo 2', sans-serif;
     color: var(--text-color);
     margin: 0;
-    background-color: transparent;
-}
-
-#background-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    background: url('https://images.hdqwalls.com/wallpapers/glass-light-abstract-background-blue-background-3d-4k-dn.jpg') no-repeat center center;
-    background-size: cover;
-    animation: slow-pan 40s infinite alternate ease-in-out;
+    background-color: transparent; /* Wichtig, damit das html-Background sichtbar ist */
 }
 
 @keyframes slow-pan {
@@ -36,21 +38,22 @@ body {
     to { transform: scale(1.1); }
 }
 
-/* KORREKTUR: Der Hauptcontainer ist jetzt nur noch ein Layout-Element und unsichtbar. */
 .container {
     max-width: 1400px;
     margin: 2rem auto;
     padding: 0 1rem;
-    background: transparent; /* WICHTIG */
-    border: none;           /* WICHTIG */
-    box-shadow: none;       /* WICHTIG */
+    background: transparent;
+    border: none;
+    box-shadow: none;
 }
 
-/* Die UI-Elemente selbst bekommen den Liquid-Glass-Effekt */
+/* Alle UI-Elemente bekommen den Liquid-Glass-Effekt */
 .app-header, .global-actions-bar, .image-card, #drop-zone {
     background: var(--liquid-bg);
     border: var(--liquid-border);
     box-shadow: var(--liquid-shadow);
+    backdrop-filter: blur(10px); /* Leichter Blur für den Glas-Effekt */
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .app-header {
