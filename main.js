@@ -1,6 +1,5 @@
 'use strict';
 
-// --- Globale Variablen und UI-Elemente ---
 const appContainer = document.getElementById('app-container');
 const uploadContainer = document.getElementById('upload-container');
 const dropZone = document.getElementById('drop-zone');
@@ -46,21 +45,17 @@ function createImageCard(file) {
     const card = document.createElement('div');
     card.className = 'image-card';
     card.id = imageId;
-
-    // KORREKTUR: Neue HTML-Struktur mit "card-content" für den Filter
     card.innerHTML = `
-        <div class="card-content">
-            <div class="selection-indicator"><i class="fa-solid fa-check"></i></div>
-            <div class="canvas-container"><canvas></canvas></div>
-            <div class="controls">
-                <div class="control-group">
-                    <i class="fa-solid fa-text-height"></i>
-                    <input type="range" class="slider font-size-slider" min="10" max="100" value="50">
-                </div>
-                <div class="control-group">
-                    <i class="fa-solid fa-eye-dropper"></i>
-                    <input type="range" class="slider transparency-slider" min="0" max="100" value="95">
-                </div>
+        <div class="selection-indicator"><i class="fa-solid fa-check"></i></div>
+        <div class="canvas-container"><canvas></canvas></div>
+        <div class="controls">
+            <div class="control-group">
+                <i class="fa-solid fa-text-height"></i>
+                <input type="range" class="slider font-size-slider" min="10" max="100" value="50">
+            </div>
+            <div class="control-group">
+                <i class="fa-solid fa-eye-dropper"></i>
+                <input type="range" class="slider transparency-slider" min="0" max="100" value="95">
             </div>
         </div>`;
     gallery.appendChild(card);
@@ -80,7 +75,16 @@ function createImageCard(file) {
     };
     imageCollection.push(imageState);
 
-    card.addEventListener('click', () => {
+    /* =======================================================
+     * KORRIGIERTER Klick-Listener für die Auswahl
+     * ======================================================= */
+    card.addEventListener('click', (e) => {
+        // Ignoriere Klicks auf die Slider, damit man sie noch bedienen kann.
+        if (e.target.classList.contains('slider')) {
+            return;
+        }
+        
+        // Führe die Auswahl-Logik NUR aus, wenn der Modus aktiv ist.
         if (isSelectionModeActive) {
             imageState.isSelected = !imageState.isSelected;
             card.classList.toggle('selected', imageState.isSelected);
