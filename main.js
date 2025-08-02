@@ -1,6 +1,6 @@
 'use strict';
 
-const appContainer = document.getElementById('app-container');
+// --- Globale Variablen und UI-Elemente ---
 const uploadContainer = document.getElementById('upload-container');
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
@@ -76,18 +76,21 @@ function createImageCard(file) {
     imageCollection.push(imageState);
 
     /* =======================================================
-     * KORRIGIERTER Klick-Listener für die Auswahl
+     * FINALER Klick-Listener für die Auswahl
      * ======================================================= */
-    card.addEventListener('click', (e) => {
-        // Ignoriere Klicks auf die Slider, damit man sie noch bedienen kann.
-        if (e.target.classList.contains('slider')) {
+    card.addEventListener('click', (event) => {
+        // Ignoriere Klicks auf die Steuerelemente, damit die Slider noch funktionieren.
+        if (event.target.classList.contains('slider')) {
             return;
         }
         
-        // Führe die Auswahl-Logik NUR aus, wenn der Modus aktiv ist.
+        // Führe die Auswahl-Logik NUR aus, wenn der Auswahlmodus global aktiv ist.
         if (isSelectionModeActive) {
+            // 1. Ändere den internen Status des Bildes
             imageState.isSelected = !imageState.isSelected;
-            card.classList.toggle('selected', imageState.isSelected);
+            // 2. Füge die .selected Klasse zum CSS hinzu (oder entferne sie), um die visuellen Änderungen (Rahmen, Haken) zu triggern.
+            imageState.cardElement.classList.toggle('selected', imageState.isSelected);
+            // 3. Aktualisiere den Download-Button
             updateGlobalButtonState();
         }
     });
@@ -117,15 +120,12 @@ function processImage(imageState) {
 function redrawCanvas(imageState) {
     const { canvas, originalImage, metadata, settings } = imageState;
     if (!originalImage) return;
-
     const ctx = canvas.getContext('2d');
     const container = canvas.parentElement;
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
-    
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
     const hRatio = canvas.width / originalImage.width;
     const vRatio = canvas.height / originalImage.height;
     const ratio = Math.min(hRatio, vRatio);
@@ -134,18 +134,14 @@ function redrawCanvas(imageState) {
     const x = (canvas.width - newWidth) / 2;
     const y = (canvas.height - newHeight) / 2;
     ctx.drawImage(originalImage, x, y, newWidth, newHeight);
-    
     if (metadata.length === 0) return;
-
     const fontSize = canvas.width * (settings.fontSize / 1200);
     const padding = fontSize * 1.5;
     const lineHeight = fontSize * 1.2;
-    
     ctx.shadowColor = 'transparent';
     ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
     ctx.textBaseline = 'bottom';
-    
     let textY = canvas.height - padding;
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
@@ -157,23 +153,21 @@ function redrawCanvas(imageState) {
 function getFormattedMetadata(exifData) {
     const tags = EXIF.getAllTags(exifData);
     let lines = [];
-    
     lines.push({ text: tags.Model || 'Unbekannte Kamera', color: 'red' });
     if (tags.LensModel) { lines.push({ text: tags.LensModel, color: 'white' }); }
-    
     let settings = [];
     if (tags.FocalLength) settings.push(`${tags.FocalLength}mm`);
     if (tags.FNumber) settings.push(`f/${tags.FNumber}`);
     if (tags.ExposureTime) { const et = tags.ExposureTime; settings.push(et < 1 ? `1/${Math.round(1/et)}s` : `${et}s`); }
     if (tags.ISOSpeedRatings) settings.push(`ISO ${tags.ISOSpeedRatings}`);
     if (settings.length > 0) lines.push({ text: settings.join('  ·  '), color: 'white' });
-
     return lines;
 }
 
 function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
-    appContainer.classList.toggle('selection-active', isSelectionModeActive);
+    // Die Klasse wird jetzt auf dem BODY-Tag umgeschaltet, was die CSS-Regeln zuverlässig aktiviert.
+    document.body.classList.toggle('selection-active', isSelectionModeActive);
     
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
     
