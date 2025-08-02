@@ -15,9 +15,6 @@
  * FINALE LÖSUNG FÜR DEN HINTERGRUND
  * ======================================================= */
 html {
-    /* 1. Das Bild wird auf das oberste Element gelegt. */
-    background: url('glass-light-abstract-background-blue-background-3d-4000x2250-8736.jpg') no-repeat center center fixed;
-    background-size: cover;
     min-height: 100%;
 }
 
@@ -27,13 +24,8 @@ body {
     color: var(--text-color);
     margin: 0;
     padding: 2rem; /* Abstand zum Rand */
-    background: transparent;
-    animation: slow-pan 40s infinite alternate ease-in-out;
-}
-
-@keyframes slow-pan {
-    from { transform: scale(1); }
-    to { transform: scale(1.05); }
+    background: url('glass-light-abstract-background-blue-background-3d-4000x2250-8736.jpg') no-repeat center center fixed;
+    background-size: cover;
 }
 
 /* Alle UI-Elemente bekommen den Liquid-Glass-Effekt */
