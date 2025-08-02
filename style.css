@@ -1,50 +1,39 @@
 :root {
     --primary-color: #007aff;
-    --primary-hover: #0a84ff;
     --mkbhd-red: #ff0000;
     --text-color: #f5f5f7;
     
-    --liquid-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-    --liquid-border: 1px solid rgba(255, 255, 255, 0.15);
-    --liquid-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+    --liquid-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+    --liquid-border: 1px solid rgba(255, 255, 255, 0.1);
+    --liquid-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
 
     --border-radius-liquid: 24px;
     --border-radius-button: 18px;
 }
 
-/* 
- * ======================================================================
- *  DIE ENTSCHEIDENDE KORREKTUR
- * ======================================================================
- * Das Hintergrundbild wird auf das oberste Element, <html>, angewendet.
- * Der Body wird explizit transparent gemacht, damit das Bild durchscheint.
- * Dies ist die stabilste Methode, um Browser-Standardwerte zu überschreiben.
-*/
+/* =======================================================
+ * FINALE LÖSUNG FÜR DEN HINTERGRUND
+ * ======================================================= */
 html {
+    /* 1. Das Bild wird auf das oberste Element gelegt. */
     background: url('https://images.hdqwalls.com/wallpapers/glass-light-abstract-background-blue-background-3d-4k-dn.jpg') no-repeat center center fixed;
     background-size: cover;
-    animation: slow-pan 40s infinite alternate ease-in-out;
+    min-height: 100%;
 }
 
 body {
+    /* 2. Der Body lässt den Hintergrund des html-Elements durchscheinen. */
     font-family: 'Exo 2', sans-serif;
     color: var(--text-color);
     margin: 0;
-    background-color: transparent; /* Wichtig, damit das html-Background sichtbar ist */
+    padding: 2rem; /* Abstand zum Rand */
+    background: transparent;
+    animation: slow-pan 40s infinite alternate ease-in-out;
 }
 
 @keyframes slow-pan {
     from { transform: scale(1); }
-    to { transform: scale(1.1); }
-}
-
-.container {
-    max-width: 1400px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-    background: transparent;
-    border: none;
-    box-shadow: none;
+    to { transform: scale(1.05); }
 }
 
 /* Alle UI-Elemente bekommen den Liquid-Glass-Effekt */
@@ -52,8 +41,8 @@ body {
     background: var(--liquid-bg);
     border: var(--liquid-border);
     box-shadow: var(--liquid-shadow);
-    backdrop-filter: blur(10px); /* Leichter Blur für den Glas-Effekt */
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .app-header {
@@ -61,10 +50,8 @@ body {
     padding: 1.2rem;
     font-size: 1.2rem;
     font-weight: 700;
-    border-radius: 0; 
-    border-left: none;
-    border-right: none;
-    border-top: none;
+    border-radius: var(--border-radius-liquid);
+    margin-bottom: 2rem;
 }
 .app-header h1 i { color: var(--primary-color); }
 
@@ -83,11 +70,12 @@ body {
 
 .global-actions-bar {
     padding: 1rem;
-    margin: 2rem 0;
+    margin: 2rem auto;
     border-radius: var(--border-radius-button);
     display: flex;
     justify-content: center;
     gap: 1rem;
+    max-width: 600px;
 }
 
 #image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
