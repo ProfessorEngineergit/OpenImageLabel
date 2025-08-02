@@ -2,20 +2,15 @@
     --primary-color: #007aff;
     --mkbhd-red: #ff0000;
     --text-color: #f5f5f7;
-    
-    /* NEUE "Liquid Glass" Properties */
-    /* Ein sehr subtiler Gradient, der einen leichten Glanz simuliert */
-    --liquid-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
-    /* Ein scharfer, heller Rand, der wie eine Kante von Glas wirkt */
-    --liquid-border: 1px solid rgba(255, 255, 255, 0.2);
-    /* Ein weicher, dunkler Schatten, der Tiefe erzeugt */
-    --liquid-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --surface-color: #181818; /* Solider Hintergrund für Karten, damit der Filter funktioniert */
 
-    --border-radius-liquid: 24px;
+    --border-radius-liquid: 28px; /* Noch rundere Ecken */
     --border-radius-button: 18px;
 }
 
 html {
+    background: url('glass-light-abstract-background-blue-background-3d-4000x2250-8736.jpg') no-repeat center center fixed;
+    background-size: cover;
     min-height: 100%;
 }
 
@@ -24,19 +19,15 @@ body {
     color: var(--text-color);
     margin: 0;
     padding: 2rem;
-    /* KORREKTUR: Der Dateipfad ist jetzt lokal, wie in Ihrem Code angegeben */
-    background: url('glass-light-abstract-background-blue-background-3d-4000x2250-8736.jpg') no-repeat center center fixed;
-    background-size: cover;
+    background: transparent;
 }
 
-/* =======================================================
- * HIER IST DIE ENTSCHEIDENDE ÄNDERUNG
- * ======================================================= */
-.app-header, .global-actions-bar, .image-card, #drop-zone {
-    background: var(--liquid-bg);
-    border: var(--liquid-border);
-    box-shadow: var(--liquid-shadow);
-    /* `backdrop-filter` wird ENTFERNT, um den "Frosted"-Look zu beseitigen */
+.app-header, .global-actions-bar, #drop-zone {
+    background: rgba(24, 24, 24, 0.5); /* Leichte Transparenz für diese Elemente */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .app-header {
@@ -54,43 +45,47 @@ body {
 #drop-zone {
     border-radius: var(--border-radius-liquid);
     padding: 2.5rem;
-    text-align: center;
     cursor: pointer;
     transition: all 0.3s;
-    /* Der Rand ist jetzt solide, um besser zum Glas-Look zu passen */
-    border-style: solid; 
-    border-width: 2px;
-}
-#drop-zone.drag-over { border-color: var(--primary-color); background: rgba(0, 122, 255, 0.1); }
-.drop-icon { font-size: 3rem; color: var(--primary-color); text-shadow: 0 0 15px rgba(0, 122, 255, 0.5); }
-
-.global-actions-bar {
-    padding: 1rem;
-    margin: 2rem auto;
-    border-radius: var(--border-radius-button);
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    max-width: 600px;
+    border-style: dashed;
 }
 
-#image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+/* =======================================================
+ * DER LIQUID/MORPHING-EFFEKT WIRD HIER ANGEWENDET
+ * ======================================================= */
+#image-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    /* Der SVG-Filter wird auf den gesamten Container angewendet */
+    filter: url(#liquid-morph);
+}
 
 .image-card {
+    /* Die Karten selbst bekommen einen soliden Hintergrund. Der Filter verrechnet die Formen. */
+    background: var(--surface-color);
     border-radius: var(--border-radius-liquid);
-    overflow: hidden;
     position: relative;
-    border-width: 2px;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    /* WICHTIG: Damit der Filter wirkt, darf hier kein 'overflow: hidden' sein. */
+}
+
+/* Der Inhalt der Karte wird in einem separaten Container platziert, um ihn vom Filter zu isolieren */
+.card-content {
+    background: transparent; /* Der Inhalt selbst hat keinen Hintergrund */
+    border-radius: var(--border-radius-liquid);
+    overflow: hidden; /* Hier wird jetzt der Inhalt abgeschnitten */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .selection-active .image-card { cursor: pointer; }
 .selection-active .image-card.selected {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(0,0,0,0.5), 0 0 30px 8px rgba(0, 122, 255, 0.4);
+    /* Der Leuchteffekt wird jetzt direkt auf die Karte angewendet */
+    box-shadow: 0 0 30px 5px rgba(0, 122, 255, 0.5);
 }
 
-/* Der Auswahl-Indikator wird auch angepasst, ohne Blur */
 .selection-indicator {
     position: absolute;
     top: 1rem;
@@ -103,10 +98,9 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1rem;
     opacity: 0;
     transform: scale(0.8);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: all 0.3s;
     z-index: 10;
 }
 .selection-active .selection-indicator { opacity: 1; transform: scale(1); }
@@ -117,26 +111,19 @@ body {
 .canvas-container { width: 100%; height: 220px; background-color: #000; display: flex; justify-content: center; align-items: center; }
 .canvas-container canvas { max-width: 100%; max-height: 100%; }
 
-.controls { padding: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+.controls { padding: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: auto; }
 .control-group { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .slider { -webkit-appearance: none; width: 100%; height: 8px; background: rgba(0,0,0,0.3); outline: none; border-radius: 4px; }
 .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: var(--text-color); cursor: pointer; border-radius: 50%; border: 2px solid rgba(0,0,0,0.5); }
 
 .button {
-    background: var(--liquid-bg);
-    border: var(--liquid-border);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-color);
     padding: 0.8rem 1.2rem;
     border-radius: var(--border-radius-button);
     cursor: pointer;
     font-weight: bold;
-    font-family: 'Exo 2', sans-serif;
     transition: all 0.2s;
-    white-space: nowrap;
 }
-.button:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
 .button.button-primary { background-color: var(--primary-color); border-color: transparent; }
-.button.button-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
-.button:disabled { background-color: rgba(50,50,50,0.5); color: #777; cursor: not-allowed; transform: none; border-color: transparent; }
-
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
