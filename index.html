@@ -10,35 +10,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     
-    <link rel="stylesheet" href="style.css">
+    <!-- Cache-Buster, um sicherzustellen, dass die neue CSS-Datei geladen wird -->
+    <link rel="stylesheet" href="style.css?v=FINAL">
 </head>
-<body>
-
-    <!-- Dedizierter Container für das Hintergrundbild. Er bleibt hier. -->
-    <div id="background-container"></div>
+<body id="app-container"> <!-- Der Body ist jetzt der Hauptcontainer -->
 
     <header class="app-header">
         <h1><i class="fa-solid fa-camera-retro"></i> OpenImageLabel</h1>
     </header>
 
-    <main id="app-container" class="container">
-        <div id="upload-container">
-            <div id="drop-zone">
-                <div class="drop-zone-prompt">
-                    <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
-                    <h2>Bilder hierher ziehen oder klicken</h2>
-                </div>
+    <div id="upload-container">
+        <div id="drop-zone">
+            <div class="drop-zone-prompt">
+                <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                <h2>Bilder hierher ziehen oder klicken</h2>
             </div>
         </div>
-        <input type="file" id="file-input" accept="image/jpeg" multiple hidden>
+    </div>
+    <input type="file" id="file-input" accept="image/jpeg" multiple hidden>
 
-        <div id="global-actions" class="global-actions-bar" style="display: none;">
-            <button id="selection-mode-btn" class="button"><i class="fa-solid fa-check-to-slot"></i> Bilder auswählen</button>
-            <button id="download-selected-btn" class="button button-primary" disabled><i class="fa-solid fa-download"></i> Auswahl herunterladen</button>
-        </div>
+    <div id="global-actions" class="global-actions-bar" style="display: none;">
+        <button id="selection-mode-btn" class="button"><i class="fa-solid fa-check-to-slot"></i> Bilder auswählen</button>
+        <button id="download-selected-btn" class="button button-primary" disabled><i class="fa-solid fa-download"></i> Auswahl herunterladen</button>
+    </div>
 
-        <div id="image-gallery"></div>
-    </main>
+    <div id="image-gallery"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <script src="main.js"></script>
