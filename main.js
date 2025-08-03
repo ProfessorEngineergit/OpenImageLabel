@@ -58,8 +58,8 @@ function createImageCard(file) {
             </div>
             <!-- NEU: Die Stil-Aktions-Buttons -->
             <div class="style-actions">
-                <button class="button copy-style-btn"><i class="fa-solid fa-copy"></i> Kopieren</button>
-                <button class="button paste-style-btn"><i class="fa-solid fa-paste"></i> Einsetzen</button>
+                <button class="button copy-style-btn"><i class="fa-solid fa-copy"></i> Stil kopieren</button>
+                <button class="button paste-style-btn"><i class="fa-solid fa-paste"></i> Stil einsetzen</button>
                 <button class="button apply-all-btn"><i class="fa-solid fa-share-nodes"></i> Auf alle anwenden</button>
             </div>
             <div class="selection-group">
@@ -91,8 +91,8 @@ function createImageCard(file) {
         // Speichert eine Kopie der aktuellen Einstellungen in der globalen Variable
         copiedStyle = { ...imageState.settings };
         // Visuelles Feedback (optional, aber nützlich)
-        imageState.ui.copyBtn.textContent = 'Kopiert!';
-        setTimeout(() => { imageState.ui.copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Kopieren'; }, 1000);
+        imageState.ui.copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Kopiert!';
+        setTimeout(() => { imageState.ui.copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Stil kopieren'; }, 1000);
     });
 
     imageState.ui.pasteBtn.addEventListener('click', () => {
