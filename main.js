@@ -75,7 +75,6 @@ function createImageCard(file) {
     };
     imageCollection.push(imageState);
 
-    // KORREKTUR 2: Der Listener ist jetzt direkt auf der Checkbox und nicht auf der Karte.
     imageState.ui.checkbox.addEventListener('change', () => {
         imageState.isSelected = imageState.ui.checkbox.checked;
         imageState.cardElement.classList.toggle('selected', imageState.isSelected);
@@ -109,42 +108,51 @@ function redrawCanvas(imageState) {
     if (!originalImage) return;
     const ctx = canvas.getContext('2d');
     
-    // KORREKTUR 3: Die Canvas-Größe wird jetzt an die des Originalbilds angepasst, nicht an die des Containers.
+    // Die Canvas-Größe wird jetzt an die des Originalbilds angepasst
     canvas.width = originalImage.width;
     canvas.height = originalImage.height;
 
-    // Das Bild wird jetzt ohne Letterboxing direkt auf das Canvas gezeichnet.
+    // Das Bild wird direkt auf das Canvas gezeichnet.
     ctx.drawImage(originalImage, 0, 0);
     
     if (metadata.length === 0) return;
 
-    // KORREKTUR 4: Die Schriftgröße wird jetzt relativ zur Canvas-Breite berechnet.
+    // Die Schriftgröße wird relativ zur Canvas-Breite berechnet.
     const fontSize = canvas.width * (settings.fontSize / 1000);
-    const padding = fontSize * 1.5;
     const lineHeight = fontSize * 1.3;
+    
+    /* =======================================================
+     * KORREKTUR FÜR DIE TEXTAUSRICHTUNG
+     * ======================================================= */
+    // 1. Definiere einen festen Innenabstand (Padding) vom Bildrand.
+    const padding = fontSize * 1.5;
+
+    // 2. Die Start-X-Position ist jetzt der linke Rand des Canvas (0) plus unser Padding.
+    //    Da das Bild jetzt den gesamten Canvas füllt, ist dies gleichbedeutend mit dem linken Bildrand.
+    const textStartX = padding;
+
+    // 3. Die maximale Breite für den Text ist die volle Canvas-Breite minus das Padding auf beiden Seiten.
+    const maxWidth = canvas.width - (padding * 2);
+
+    // 4. Die Start-Y-Position ist der untere Rand des Canvas minus unser Padding.
+    let textY = canvas.height - padding;
     
     ctx.shadowColor = 'transparent';
     ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
     ctx.textBaseline = 'bottom';
-    
-    let textY = canvas.height - padding;
 
-    // Diese Funktion zeichnet Text mit Zeilenumbruch.
+    // Die `wrapText` Funktion zeichnet den Text jetzt an der korrekten Startposition.
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
-        // Die `wrapText` Funktion sorgt für den korrekten Zeilenumbruch.
-        textY = wrapText(ctx, line.text, padding, textY, canvas.width - (padding * 2), lineHeight);
+        textY = wrapText(ctx, line.text, textStartX, textY, maxWidth, lineHeight);
     });
 }
 
-// NEUE HILFSFUNKTION für korrekten Zeilenumbruch
 function wrapText(context, text, x, y, maxWidth, lineHeight) {
     let words = text.split(' ');
     let line = '';
     let testY = y;
-    
-    // Beginne von unten und arbeite dich nach oben
     let lines = [];
     for(let n = 0; n < words.length; n++) {
         let testLine = line + words[n] + ' ';
@@ -159,13 +167,11 @@ function wrapText(context, text, x, y, maxWidth, lineHeight) {
     }
     lines.push(line);
 
-    // Zeichne die Zeilen von unten nach oben
     for(let i = lines.length - 1; i >= 0; i--) {
         context.fillText(lines[i].trim(), x, testY);
         testY -= lineHeight;
     }
     
-    // Gib die neue Y-Position für die nächste Zeile zurück
     return testY;
 }
 
@@ -187,7 +193,6 @@ function getFormattedMetadata(exifData) {
 function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
     
-    // Die Klasse wird auf dem body-Tag umgeschaltet. CSS erledigt das Anzeigen/Verbergen.
     document.body.classList.toggle('selection-active', isSelectionModeActive);
     
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
