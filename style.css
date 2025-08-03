@@ -9,7 +9,6 @@
     --border-radius-button: 18px;
 }
 
-/* KORREKTUR 1: Hintergrundbild wird auf das html-Element gelegt, um alle Browser-Standards zu überschreiben. */
 html {
     height: 100%;
     background: url('https://images.hdqwalls.com/wallpapers/glass-light-abstract-background-blue-background-3d-4k-dn.jpg') no-repeat center center fixed;
@@ -65,7 +64,8 @@ body {
     display: flex;
     justify-content: center;
     gap: 1rem;
-    max-width: 600px;
+    flex-wrap: wrap; /* Erlaubt Umbruch auf kleinen Bildschirmen */
+    max-width: 800px;
 }
 
 #image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
@@ -78,7 +78,6 @@ body {
     transition: all 0.3s;
 }
 
-/* KORREKTUR 2: Vereinfachte und stabile Auswahl-Stile */
 .selection-checkbox {
     position: absolute;
     top: 1rem;
@@ -119,5 +118,3 @@ body.selection-active .selection-checkbox {
 .button:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
 .button.button-primary { background-color: var(--primary-color); border-color: transparent; }
 .button:disabled { background-color: rgba(50,50,50,0.2); color: #777; cursor: not-allowed; }
-
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
