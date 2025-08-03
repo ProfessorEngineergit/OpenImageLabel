@@ -1,5 +1,6 @@
 'use strict';
 
+// --- Globale Variablen und UI-Elemente ---
 const uploadContainer = document.getElementById('upload-container');
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
@@ -7,6 +8,8 @@ const gallery = document.getElementById('image-gallery');
 const globalActions = document.getElementById('global-actions');
 const selectionModeBtn = document.getElementById('selection-mode-btn');
 const downloadSelectedBtn = document.getElementById('download-selected-btn');
+// NEU: Den "Alle herunterladen"-Button holen
+const downloadAllBtn = document.getElementById('download-all-btn');
 
 let imageCollection = [];
 let isSelectionModeActive = false;
@@ -24,6 +27,13 @@ downloadSelectedBtn.addEventListener('click', () => {
     downloadImages(selected);
     toggleSelectionMode(true);
 });
+
+// NEU: Event-Listener für den "Alle herunterladen"-Button
+downloadAllBtn.addEventListener('click', () => {
+    // Ruft die Download-Funktion mit ALLEN Bildern auf
+    downloadImages(imageCollection);
+});
+
 
 // --- Kernlogik ---
 
@@ -108,13 +118,10 @@ function redrawCanvas(imageState) {
     if (!originalImage) return;
     const ctx = canvas.getContext('2d');
     const container = canvas.parentElement;
-    
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
-    
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
     const hRatio = canvas.width / originalImage.width;
     const vRatio = canvas.height / originalImage.height;
     const ratio = Math.min(hRatio, vRatio);
@@ -122,28 +129,18 @@ function redrawCanvas(imageState) {
     const newHeight = originalImage.height * ratio;
     const imageX = (canvas.width - newWidth) / 2;
     const imageY = (canvas.height - newHeight) / 2;
-
     ctx.drawImage(originalImage, imageX, imageY, newWidth, newHeight);
-    
     if (metadata.length === 0) return;
-
-    /* =======================================================
-     * KORREKTUR: Das Padding wurde noch weiter reduziert.
-     * fontSize * 0.8 -> fontSize * 0.4
-     * ======================================================= */
     const fontSize = newWidth * (settings.fontSize / 1000);
     const lineHeight = fontSize * 1.3;
-    const padding = fontSize * 0.4; // Minimaler Abstand zum Rand
-
+    const padding = fontSize * 0.4;
     const textStartX = imageX + padding;
     const maxWidth = newWidth - (padding * 2);
     let textY = imageY + newHeight - padding;
-
     ctx.shadowColor = 'transparent';
     ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
     ctx.textBaseline = 'bottom';
-    
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
         textY = wrapText(ctx, line.text, textStartX, textY, maxWidth, lineHeight);
@@ -167,15 +164,12 @@ function wrapText(context, text, x, y, maxWidth, lineHeight) {
         }
     }
     lines.push(line);
-
     for(let i = lines.length - 1; i >= 0; i--) {
         context.fillText(lines[i].trim(), x, testY);
         testY -= lineHeight;
     }
-    
     return testY;
 }
-
 
 function getFormattedMetadata(exifData) {
     const tags = EXIF.getAllTags(exifData);
@@ -193,11 +187,8 @@ function getFormattedMetadata(exifData) {
 
 function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
-    
     document.body.classList.toggle('selection-active', isSelectionModeActive);
-    
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
-    
     if (!isSelectionModeActive) {
         imageCollection.forEach(img => {
             img.ui.checkbox.checked = false;
