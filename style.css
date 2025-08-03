@@ -9,8 +9,12 @@
     --border-radius-button: 18px;
 }
 
+/* =======================================================
+ * KORREKTUR FÜR DAS SCROLLEN
+ * ======================================================= */
 html {
     height: 100%;
+ fix-background-image
 }
 
 .background-overlay {
@@ -22,6 +26,13 @@ html {
     background: url('glass-light-abstract-background-blue-background-3d-4000x2250-8736.jpg') no-repeat center center fixed;
     background-size: cover;
     z-index: -1;
+=======
+    /* Der Hintergrund ist fest mit dem Ansichtsfenster verbunden */
+    background: url('https://images.hdqwalls.com/wallpapers/glass-light-abstract-background-blue-background-3d-4k-dn.jpg') no-repeat center center fixed;
+    background-size: cover;
+    /* Erlaubt dem Inhalt, über den Rand des Fensters hinauszuwachsen und zu scrollen */
+    overflow-y: auto; 
+  main
 }
 
 body {
@@ -89,28 +100,27 @@ body {
     box-shadow: 0 0 20px rgba(0, 122, 255, 0.5);
 }
 
-.canvas-container {
-    width: 100%;
-    height: 220px;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-/* KORREKTUR FÜR HOHE QUALITÄT: Das Canvas-Element wird visuell skaliert */
-.canvas-container canvas {
-    /* Zeigt das hochauflösende Canvas passend im Container an */
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
+.canvas-container { width: 100%; height: 220px; background-color: #000; display: flex; justify-content: center; align-items: center; }
+.canvas-container canvas { width: 100%; height: 100%; object-fit: contain; }
 
-.controls { padding: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+.controls { padding: 1.2rem; }
 .control-group { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .slider { -webkit-appearance: none; width: 100%; height: 8px; background: rgba(0,0,0,0.3); outline: none; border-radius: 4px; }
 .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: var(--text-color); cursor: pointer; border-radius: 50%; }
 
-/* KORREKTUR FÜR DIE AUSWAHL: Stile für die neue, klare Auswahl-Gruppe */
+/* Stile für die neuen Aktions-Buttons in den Karten */
+.style-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.style-actions .button.apply-all-btn {
+    grid-column: 1 / -1; /* Nimmt die volle Breite ein */
+}
+
 .selection-group {
     display: flex;
     align-items: center;
@@ -119,22 +129,18 @@ body {
     padding-top: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
-.selection-checkbox {
-    width: 1.2rem;
-    height: 1.2rem;
-}
-.selection-group label {
-    cursor: pointer;
-}
+.selection-checkbox { width: 1.2rem; height: 1.2rem; }
+.selection-group label { cursor: pointer; }
 
 .button {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
     border: var(--card-border);
     color: var(--text-color);
-    padding: 0.8rem 1.2rem;
+    padding: 0.6rem 1rem; /* Etwas kleiner für die Karten-Buttons */
     border-radius: var(--border-radius-button);
     cursor: pointer;
     font-weight: bold;
+    font-size: 0.8rem;
 }
 .button.button-primary { background-color: var(--primary-color); border-color: transparent; }
 .button:disabled { background-color: rgba(50,50,50,0.2); color: #777; cursor: not-allowed; }
