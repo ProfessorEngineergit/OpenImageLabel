@@ -9,6 +9,7 @@
     --border-radius-button: 18px;
 }
 
+/* KORREKTUR 1: Hintergrundbild wird auf das html-Element gelegt, um alle Browser-Standards zu überschreiben. */
 html {
     height: 100%;
     background: url('https://images.hdqwalls.com/wallpapers/glass-light-abstract-background-blue-background-3d-4k-dn.jpg') no-repeat center center fixed;
@@ -73,13 +74,11 @@ body {
     border-radius: var(--border-radius-card);
     overflow: hidden;
     position: relative;
-    border: 3px solid transparent; /* Platzhalter für den Auswahlrand */
+    border: 3px solid transparent;
     transition: all 0.3s;
 }
 
-/* =======================================================
- * EINFACHSTE & ROBUSTE AUSWAHL-STILE
- * ======================================================= */
+/* KORREKTUR 2: Vereinfachte und stabile Auswahl-Stile */
 .selection-checkbox {
     position: absolute;
     top: 1rem;
@@ -87,11 +86,11 @@ body {
     width: 1.5rem;
     height: 1.5rem;
     z-index: 10;
-    /* Die Checkbox ist standardmäßig komplett versteckt. JS macht sie sichtbar. */
     display: none; 
 }
-
-/* Wenn die Karte ausgewählt ist (via JS-Klasse), wird der blaue Rand angezeigt. */
+body.selection-active .selection-checkbox {
+    display: block;
+}
 .image-card.selected {
     border-color: var(--primary-color);
     box-shadow: 0 0 20px rgba(0, 122, 255, 0.5);
