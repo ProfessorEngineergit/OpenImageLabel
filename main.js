@@ -15,7 +15,7 @@ let isSelectionModeActive = false;
 dropZone.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
 
 selectionModeBtn.addEventListener('click', toggleSelectionMode);
@@ -107,44 +107,61 @@ function redrawCanvas(imageState) {
     const { canvas, originalImage, metadata, settings } = imageState;
     if (!originalImage) return;
     const ctx = canvas.getContext('2d');
+    const container = canvas.parentElement;
     
-    canvas.width = originalImage.width;
-    canvas.height = originalImage.height;
+    // Canvas an den Container anpassen
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+    
+    // Schwarzen Hintergrund zeichnen
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Letterboxing-Berechnungen
+    const hRatio = canvas.width / originalImage.width;
+    const vRatio = canvas.height / originalImage.height;
+    const ratio = Math.min(hRatio, vRatio);
+    const newWidth = originalImage.width * ratio;
+    const newHeight = originalImage.height * ratio;
+    const imageX = (canvas.width - newWidth) / 2;
+    const imageY = (canvas.height - newHeight) / 2;
 
-    ctx.drawImage(originalImage, 0, 0);
+    // Bild zentriert zeichnen
+    ctx.drawImage(originalImage, imageX, imageY, newWidth, newHeight);
     
     if (metadata.length === 0) return;
 
-    const fontSize = canvas.width * (settings.fontSize / 1000);
-    const lineHeight = fontSize * 1.3;
-    
     /* =======================================================
      * FINALE KORREKTUR FÜR DIE TEXTAUSRICHTUNG
      * ======================================================= */
-    // 1. Der horizontale Abstand ist jetzt ein fester Prozentsatz der Bildbreite und ändert sich nicht mit der Schriftgröße.
-    const horizontalPadding = canvas.width * 0.04; 
-    // 2. Der vertikale Abstand kann weiterhin von der Schriftgröße abhängen, das sieht besser aus.
-    const verticalPadding = fontSize * 1.5;
-
-    // 3. Die Start-X-Position ist jetzt immer gleich.
-    const textStartX = horizontalPadding;
-    // 4. Die maximale Breite wird ebenfalls mit diesem festen Abstand berechnet.
-    const maxWidth = canvas.width - (horizontalPadding * 2);
-    // 5. Die Start-Y-Position nutzt den dynamischen vertikalen Abstand.
-    let textY = canvas.height - verticalPadding;
     
+    // 1. Die Schriftgröße wird jetzt relativ zur Breite des *sichtbaren Bildes* berechnet, nicht zum Canvas.
+    const fontSize = newWidth * (settings.fontSize / 1000);
+    const lineHeight = fontSize * 1.3;
+    const padding = fontSize * 1.2; // Innenabstand vom Bildrand
+
+    // 2. Die Start-X-Position ist der linke Rand des Bildes (`imageX`) plus der Innenabstand.
+    const textStartX = imageX + padding;
+    
+    // 3. Die maximale Breite für den Text ist die Breite des Bildes (`newWidth`) minus der Innenabstand auf beiden Seiten.
+    const maxWidth = newWidth - (padding * 2);
+    
+    // 4. Die Start-Y-Position ist der untere Rand des Bildes (`imageY + newHeight`) minus der Innenabstand.
+    let textY = imageY + newHeight - padding;
+
     ctx.shadowColor = 'transparent';
     ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
     ctx.textBaseline = 'bottom';
-
-    // Die `wrapText` Funktion erhält jetzt immer die korrekten, konstanten X-Werte.
+    
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
+        // Die wrapText-Funktion erhält jetzt die korrekten, am Bild ausgerichteten Koordinaten.
         textY = wrapText(ctx, line.text, textStartX, textY, maxWidth, lineHeight);
     });
 }
 
+// Diese Hilfsfunktion ist jetzt korrekt, da sie mit den richtigen Koordinaten aufgerufen wird.
 function wrapText(context, text, x, y, maxWidth, lineHeight) {
     let words = text.split(' ');
     let line = '';
