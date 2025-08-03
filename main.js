@@ -9,6 +9,8 @@ const downloadSelectedBtn = document.getElementById('download-selected-btn');
 const downloadAllBtn = document.getElementById('download-all-btn');
 
 let imageCollection = [];
+// NEU: Globale Variable zum Speichern des kopierten Stils
+let copiedStyle = null;
 
 // --- Event Listeners ---
 dropZone.addEventListener('click', () => fileInput.click());
@@ -54,7 +56,12 @@ function createImageCard(file) {
                 <i class="fa-solid fa-circle-half-stroke"></i>
                 <input type="range" class="slider transparency-slider" min="0" max="100" value="95">
             </div>
-            <!-- KORREKTUR FÜR DIE AUSWAHL: Eine klare Checkbox mit Label -->
+            <!-- NEU: Die Stil-Aktions-Buttons -->
+            <div class="style-actions">
+                <button class="button copy-style-btn"><i class="fa-solid fa-copy"></i> Kopieren</button>
+                <button class="button paste-style-btn"><i class="fa-solid fa-paste"></i> Einsetzen</button>
+                <button class="button apply-all-btn"><i class="fa-solid fa-share-nodes"></i> Auf alle anwenden</button>
+            </div>
             <div class="selection-group">
                 <input type="checkbox" class="selection-checkbox" id="check-${imageId}">
                 <label for="check-${imageId}">Für Download auswählen</label>
@@ -71,9 +78,45 @@ function createImageCard(file) {
             fontSizeSlider: card.querySelector('.font-size-slider'),
             transparencySlider: card.querySelector('.transparency-slider'),
             checkbox: card.querySelector('.selection-checkbox'),
+            // NEU: Referenzen zu den neuen Buttons
+            copyBtn: card.querySelector('.copy-style-btn'),
+            pasteBtn: card.querySelector('.paste-style-btn'),
+            applyAllBtn: card.querySelector('.apply-all-btn'),
         }
     };
     imageCollection.push(imageState);
+
+    // Event-Listener für die neuen Buttons
+    imageState.ui.copyBtn.addEventListener('click', () => {
+        // Speichert eine Kopie der aktuellen Einstellungen in der globalen Variable
+        copiedStyle = { ...imageState.settings };
+        // Visuelles Feedback (optional, aber nützlich)
+        imageState.ui.copyBtn.textContent = 'Kopiert!';
+        setTimeout(() => { imageState.ui.copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Kopieren'; }, 1000);
+    });
+
+    imageState.ui.pasteBtn.addEventListener('click', () => {
+        if (copiedStyle) {
+            // Überschreibt die Einstellungen der Karte mit dem kopierten Stil
+            imageState.settings = { ...copiedStyle };
+            // Aktualisiert die Slider-Positionen, um die neuen Werte anzuzeigen
+            updateControls(imageState);
+            // Zeichnet das Canvas neu mit den neuen Einstellungen
+            redrawCanvas(imageState);
+        }
+    });
+
+    imageState.ui.applyAllBtn.addEventListener('click', () => {
+        // Geht durch ALLE Bilder in der Sammlung
+        imageCollection.forEach(img => {
+            // Überschreibt die Einstellungen jedes Bildes
+            img.settings = { ...imageState.settings };
+            // Aktualisiert die Slider jedes Bildes
+            updateControls(img);
+            // Zeichnet jedes Canvas neu
+            redrawCanvas(img);
+        });
+    });
 
     imageState.ui.checkbox.addEventListener('change', () => {
         imageState.isSelected = imageState.ui.checkbox.checked;
@@ -85,6 +128,12 @@ function createImageCard(file) {
     imageState.ui.transparencySlider.addEventListener('input', (e) => { imageState.settings.alpha = parseInt(e.target.value) / 100; redrawCanvas(imageState); });
     
     processImage(imageState);
+}
+
+// NEU: Hilfsfunktion, um die Slider einer Karte zu aktualisieren
+function updateControls(imageState) {
+    imageState.ui.fontSizeSlider.value = imageState.settings.fontSize;
+    imageState.ui.transparencySlider.value = imageState.settings.alpha * 100;
 }
 
 function processImage(imageState) {
@@ -107,29 +156,20 @@ function redrawCanvas(imageState) {
     const { canvas, originalImage, metadata, settings } = imageState;
     if (!originalImage) return;
     const ctx = canvas.getContext('2d');
-
-    // KORREKTUR FÜR HOHE QUALITÄT: Canvas wird auf die volle Auflösung des Bildes gesetzt.
     canvas.width = originalImage.width;
     canvas.height = originalImage.height;
-
-    // Bild wird in voller Qualität gezeichnet
     ctx.drawImage(originalImage, 0, 0);
-    
     if (metadata.length === 0) return;
-
-    // Schriftgröße und Positionierung basieren auf der vollen Auflösung für maximale Schärfe.
     const fontSize = canvas.width * (settings.fontSize / 1200);
     const padding = fontSize * 0.8;
     const lineHeight = fontSize * 1.3;
     const textStartX = padding;
     const maxWidth = canvas.width - (padding * 2);
     let textY = canvas.height - padding;
-    
     ctx.shadowColor = 'transparent';
     ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
     ctx.textBaseline = 'bottom';
-    
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
         textY = wrapText(ctx, line.text, textStartX, textY, maxWidth, lineHeight);
@@ -183,7 +223,6 @@ function downloadImages(imagesToDownload) {
     if (imagesToDownload.length === 0) return;
     imagesToDownload.forEach((state, i) => {
         const a = document.createElement('a');
-        // KORREKTUR FÜR HOHE QUALITÄT: Exportqualität wird auf das Maximum gesetzt (1.0).
         a.href = state.canvas.toDataURL('image/jpeg', 1.0);
         a.download = state.file.name.replace(/\.jpeg$|\.jpg$/i, '-OpenImageLabel.jpg');
         setTimeout(() => a.click(), i * 200);
