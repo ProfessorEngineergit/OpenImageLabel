@@ -15,7 +15,7 @@ let isSelectionModeActive = false;
 dropZone.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'); });
 dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
 
 selectionModeBtn.addEventListener('click', toggleSelectionMode);
@@ -108,41 +108,37 @@ function redrawCanvas(imageState) {
     if (!originalImage) return;
     const ctx = canvas.getContext('2d');
     
-    // Die Canvas-Größe wird jetzt an die des Originalbilds angepasst
     canvas.width = originalImage.width;
     canvas.height = originalImage.height;
 
-    // Das Bild wird direkt auf das Canvas gezeichnet.
     ctx.drawImage(originalImage, 0, 0);
     
     if (metadata.length === 0) return;
 
-    // Die Schriftgröße wird relativ zur Canvas-Breite berechnet.
     const fontSize = canvas.width * (settings.fontSize / 1000);
     const lineHeight = fontSize * 1.3;
     
     /* =======================================================
-     * KORREKTUR FÜR DIE TEXTAUSRICHTUNG
+     * FINALE KORREKTUR FÜR DIE TEXTAUSRICHTUNG
      * ======================================================= */
-    // 1. Definiere einen festen Innenabstand (Padding) vom Bildrand.
-    const padding = fontSize * 1.5;
+    // 1. Der horizontale Abstand ist jetzt ein fester Prozentsatz der Bildbreite und ändert sich nicht mit der Schriftgröße.
+    const horizontalPadding = canvas.width * 0.04; 
+    // 2. Der vertikale Abstand kann weiterhin von der Schriftgröße abhängen, das sieht besser aus.
+    const verticalPadding = fontSize * 1.5;
 
-    // 2. Die Start-X-Position ist jetzt der linke Rand des Canvas (0) plus unser Padding.
-    //    Da das Bild jetzt den gesamten Canvas füllt, ist dies gleichbedeutend mit dem linken Bildrand.
-    const textStartX = padding;
-
-    // 3. Die maximale Breite für den Text ist die volle Canvas-Breite minus das Padding auf beiden Seiten.
-    const maxWidth = canvas.width - (padding * 2);
-
-    // 4. Die Start-Y-Position ist der untere Rand des Canvas minus unser Padding.
-    let textY = canvas.height - padding;
+    // 3. Die Start-X-Position ist jetzt immer gleich.
+    const textStartX = horizontalPadding;
+    // 4. Die maximale Breite wird ebenfalls mit diesem festen Abstand berechnet.
+    const maxWidth = canvas.width - (horizontalPadding * 2);
+    // 5. Die Start-Y-Position nutzt den dynamischen vertikalen Abstand.
+    let textY = canvas.height - verticalPadding;
     
     ctx.shadowColor = 'transparent';
     ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
     ctx.textBaseline = 'bottom';
 
-    // Die `wrapText` Funktion zeichnet den Text jetzt an der korrekten Startposition.
+    // Die `wrapText` Funktion erhält jetzt immer die korrekten, konstanten X-Werte.
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
         textY = wrapText(ctx, line.text, textStartX, textY, maxWidth, lineHeight);
