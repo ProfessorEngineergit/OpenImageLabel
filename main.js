@@ -1,7 +1,6 @@
 'use strict';
 
 // --- Globale Variablen und UI-Elemente ---
-const appContainer = document.getElementById('app-container');
 const uploadContainer = document.getElementById('upload-container');
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
@@ -24,7 +23,7 @@ selectionModeBtn.addEventListener('click', toggleSelectionMode);
 downloadSelectedBtn.addEventListener('click', () => {
     const selected = imageCollection.filter(img => img.isSelected);
     downloadImages(selected);
-    toggleSelectionMode(true); // Auswahlmodus nach Download beenden
+    toggleSelectionMode(true);
 });
 
 // --- Kernlogik ---
@@ -47,7 +46,7 @@ function createImageCard(file) {
     card.className = 'image-card';
     card.id = imageId;
     card.innerHTML = `
-        <div class="selection-indicator"><i class="fa-solid fa-check"></i></div>
+        <input type="checkbox" class="selection-checkbox" id="check-${imageId}">
         <div class="canvas-container"><canvas></canvas></div>
         <div class="controls">
             <div class="control-group">
@@ -72,16 +71,15 @@ function createImageCard(file) {
         ui: {
             fontSizeSlider: card.querySelector('.font-size-slider'),
             transparencySlider: card.querySelector('.transparency-slider'),
+            checkbox: card.querySelector('.selection-checkbox'),
         }
     };
     imageCollection.push(imageState);
 
-    card.addEventListener('click', () => {
-        if (isSelectionModeActive) {
-            imageState.isSelected = !imageState.isSelected;
-            card.classList.toggle('selected', imageState.isSelected);
-            updateGlobalButtonState();
-        }
+    imageState.ui.checkbox.addEventListener('change', () => {
+        imageState.isSelected = imageState.ui.checkbox.checked;
+        imageState.cardElement.classList.toggle('selected', imageState.isSelected);
+        updateGlobalButtonState();
     });
 
     imageState.ui.fontSizeSlider.addEventListener('input', (e) => { imageState.settings.fontSize = parseInt(e.target.value); redrawCanvas(imageState); });
@@ -109,15 +107,12 @@ function processImage(imageState) {
 function redrawCanvas(imageState) {
     const { canvas, originalImage, metadata, settings } = imageState;
     if (!originalImage) return;
-
     const ctx = canvas.getContext('2d');
     const container = canvas.parentElement;
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
-    
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
     const hRatio = canvas.width / originalImage.width;
     const vRatio = canvas.height / originalImage.height;
     const ratio = Math.min(hRatio, vRatio);
@@ -126,18 +121,14 @@ function redrawCanvas(imageState) {
     const x = (canvas.width - newWidth) / 2;
     const y = (canvas.height - newHeight) / 2;
     ctx.drawImage(originalImage, x, y, newWidth, newHeight);
-    
     if (metadata.length === 0) return;
-
     const fontSize = canvas.width * (settings.fontSize / 1200);
     const padding = fontSize * 1.5;
     const lineHeight = fontSize * 1.2;
-    
     ctx.shadowColor = 'transparent';
     ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
     ctx.textBaseline = 'bottom';
-    
     let textY = canvas.height - padding;
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
@@ -149,28 +140,34 @@ function redrawCanvas(imageState) {
 function getFormattedMetadata(exifData) {
     const tags = EXIF.getAllTags(exifData);
     let lines = [];
-    
     lines.push({ text: tags.Model || 'Unbekannte Kamera', color: 'red' });
     if (tags.LensModel) { lines.push({ text: tags.LensModel, color: 'white' }); }
-    
     let settings = [];
     if (tags.FocalLength) settings.push(`${tags.FocalLength}mm`);
     if (tags.FNumber) settings.push(`f/${tags.FNumber}`);
     if (tags.ExposureTime) { const et = tags.ExposureTime; settings.push(et < 1 ? `1/${Math.round(1/et)}s` : `${et}s`); }
     if (tags.ISOSpeedRatings) settings.push(`ISO ${tags.ISOSpeedRatings}`);
     if (settings.length > 0) lines.push({ text: settings.join('  ·  '), color: 'white' });
-
     return lines;
 }
 
+/* =======================================================
+ * FINALE, ROBUSTE AUSWAHL-LOGIK
+ * ======================================================= */
 function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
-    appContainer.classList.toggle('selection-active', isSelectionModeActive);
+    
+    // Gehe durch jede einzelne Bildkarte, die wir erstellt haben.
+    imageCollection.forEach(imgState => {
+        // Mache die Checkbox direkt sichtbar oder unsichtbar. Kein Raten, kein CSS-Konflikt.
+        imgState.ui.checkbox.style.display = isSelectionModeActive ? 'block' : 'none';
+    });
     
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
     
     if (!isSelectionModeActive) {
         imageCollection.forEach(img => {
+            img.ui.checkbox.checked = false;
             img.isSelected = false;
             img.cardElement.classList.remove('selected');
         });
