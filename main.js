@@ -1,6 +1,5 @@
 'use strict';
 
-// --- Globale Variablen und UI-Elemente ---
 const uploadContainer = document.getElementById('upload-container');
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
@@ -76,6 +75,7 @@ function createImageCard(file) {
     };
     imageCollection.push(imageState);
 
+    // KORREKTUR 2: Der Listener ist jetzt direkt auf der Checkbox und nicht auf der Karte.
     imageState.ui.checkbox.addEventListener('change', () => {
         imageState.isSelected = imageState.ui.checkbox.checked;
         imageState.cardElement.classList.toggle('selected', imageState.isSelected);
@@ -108,34 +108,67 @@ function redrawCanvas(imageState) {
     const { canvas, originalImage, metadata, settings } = imageState;
     if (!originalImage) return;
     const ctx = canvas.getContext('2d');
-    const container = canvas.parentElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const hRatio = canvas.width / originalImage.width;
-    const vRatio = canvas.height / originalImage.height;
-    const ratio = Math.min(hRatio, vRatio);
-    const newWidth = originalImage.width * ratio;
-    const newHeight = originalImage.height * ratio;
-    const x = (canvas.width - newWidth) / 2;
-    const y = (canvas.height - newHeight) / 2;
-    ctx.drawImage(originalImage, x, y, newWidth, newHeight);
+    
+    // KORREKTUR 3: Die Canvas-Größe wird jetzt an die des Originalbilds angepasst, nicht an die des Containers.
+    canvas.width = originalImage.width;
+    canvas.height = originalImage.height;
+
+    // Das Bild wird jetzt ohne Letterboxing direkt auf das Canvas gezeichnet.
+    ctx.drawImage(originalImage, 0, 0);
+    
     if (metadata.length === 0) return;
-    const fontSize = canvas.width * (settings.fontSize / 1200);
+
+    // KORREKTUR 4: Die Schriftgröße wird jetzt relativ zur Canvas-Breite berechnet.
+    const fontSize = canvas.width * (settings.fontSize / 1000);
     const padding = fontSize * 1.5;
-    const lineHeight = fontSize * 1.2;
+    const lineHeight = fontSize * 1.3;
+    
     ctx.shadowColor = 'transparent';
     ctx.textAlign = 'left'; 
     ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
     ctx.textBaseline = 'bottom';
+    
     let textY = canvas.height - padding;
+
+    // Diese Funktion zeichnet Text mit Zeilenumbruch.
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
-        ctx.fillText(line.text, padding, textY, canvas.width - (padding * 2));
-        textY -= lineHeight;
+        // Die `wrapText` Funktion sorgt für den korrekten Zeilenumbruch.
+        textY = wrapText(ctx, line.text, padding, textY, canvas.width - (padding * 2), lineHeight);
     });
 }
+
+// NEUE HILFSFUNKTION für korrekten Zeilenumbruch
+function wrapText(context, text, x, y, maxWidth, lineHeight) {
+    let words = text.split(' ');
+    let line = '';
+    let testY = y;
+    
+    // Beginne von unten und arbeite dich nach oben
+    let lines = [];
+    for(let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + ' ';
+        let metrics = context.measureText(testLine);
+        let testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+            lines.push(line);
+            line = words[n] + ' ';
+        } else {
+            line = testLine;
+        }
+    }
+    lines.push(line);
+
+    // Zeichne die Zeilen von unten nach oben
+    for(let i = lines.length - 1; i >= 0; i--) {
+        context.fillText(lines[i].trim(), x, testY);
+        testY -= lineHeight;
+    }
+    
+    // Gib die neue Y-Position für die nächste Zeile zurück
+    return testY;
+}
+
 
 function getFormattedMetadata(exifData) {
     const tags = EXIF.getAllTags(exifData);
@@ -151,17 +184,11 @@ function getFormattedMetadata(exifData) {
     return lines;
 }
 
-/* =======================================================
- * FINALE, ROBUSTE AUSWAHL-LOGIK
- * ======================================================= */
 function toggleSelectionMode(forceOff = false) {
     isSelectionModeActive = forceOff ? false : !isSelectionModeActive;
     
-    // Gehe durch jede einzelne Bildkarte, die wir erstellt haben.
-    imageCollection.forEach(imgState => {
-        // Mache die Checkbox direkt sichtbar oder unsichtbar. Kein Raten, kein CSS-Konflikt.
-        imgState.ui.checkbox.style.display = isSelectionModeActive ? 'block' : 'none';
-    });
+    // Die Klasse wird auf dem body-Tag umgeschaltet. CSS erledigt das Anzeigen/Verbergen.
+    document.body.classList.toggle('selection-active', isSelectionModeActive);
     
     selectionModeBtn.innerHTML = isSelectionModeActive ? '<i class="fa-solid fa-xmark"></i> Auswahl beenden' : '<i class="fa-solid fa-check-to-slot"></i> Bilder auswählen';
     
