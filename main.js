@@ -44,6 +44,10 @@ function createImageCard(file) {
     const card = document.createElement('div');
     card.className = 'image-card';
     card.id = imageId;
+    /* =======================================================
+     * KORREKTUR 1: Das Icon für die Deckkraft wurde geändert.
+     * fa-eye-dropper -> fa-circle-half-stroke
+     * ======================================================= */
     card.innerHTML = `
         <input type="checkbox" class="selection-checkbox" id="check-${imageId}">
         <div class="canvas-container"><canvas></canvas></div>
@@ -53,7 +57,7 @@ function createImageCard(file) {
                 <input type="range" class="slider font-size-slider" min="10" max="100" value="50">
             </div>
             <div class="control-group">
-                <i class="fa-solid fa-eye-dropper"></i>
+                <i class="fa-solid fa-circle-half-stroke"></i>
                 <input type="range" class="slider transparency-slider" min="0" max="100" value="95">
             </div>
         </div>`;
@@ -109,15 +113,12 @@ function redrawCanvas(imageState) {
     const ctx = canvas.getContext('2d');
     const container = canvas.parentElement;
     
-    // Canvas an den Container anpassen
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
     
-    // Schwarzen Hintergrund zeichnen
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Letterboxing-Berechnungen
     const hRatio = canvas.width / originalImage.width;
     const vRatio = canvas.height / originalImage.height;
     const ratio = Math.min(hRatio, vRatio);
@@ -126,27 +127,20 @@ function redrawCanvas(imageState) {
     const imageX = (canvas.width - newWidth) / 2;
     const imageY = (canvas.height - newHeight) / 2;
 
-    // Bild zentriert zeichnen
     ctx.drawImage(originalImage, imageX, imageY, newWidth, newHeight);
     
     if (metadata.length === 0) return;
 
     /* =======================================================
-     * FINALE KORREKTUR FÜR DIE TEXTAUSRICHTUNG
+     * KORREKTUR 2: Das Padding wurde reduziert.
+     * fontSize * 1.5 -> fontSize * 0.8
      * ======================================================= */
-    
-    // 1. Die Schriftgröße wird jetzt relativ zur Breite des *sichtbaren Bildes* berechnet, nicht zum Canvas.
     const fontSize = newWidth * (settings.fontSize / 1000);
     const lineHeight = fontSize * 1.3;
-    const padding = fontSize * 1.2; // Innenabstand vom Bildrand
+    const padding = fontSize * 0.8; // Geringerer Abstand zum Rand
 
-    // 2. Die Start-X-Position ist der linke Rand des Bildes (`imageX`) plus der Innenabstand.
     const textStartX = imageX + padding;
-    
-    // 3. Die maximale Breite für den Text ist die Breite des Bildes (`newWidth`) minus der Innenabstand auf beiden Seiten.
     const maxWidth = newWidth - (padding * 2);
-    
-    // 4. Die Start-Y-Position ist der untere Rand des Bildes (`imageY + newHeight`) minus der Innenabstand.
     let textY = imageY + newHeight - padding;
 
     ctx.shadowColor = 'transparent';
@@ -156,12 +150,10 @@ function redrawCanvas(imageState) {
     
     metadata.slice().reverse().forEach(line => {
         ctx.fillStyle = line.color === 'red' ? `rgba(255, 0, 0, ${settings.alpha})` : `rgba(255, 255, 255, ${settings.alpha})`;
-        // Die wrapText-Funktion erhält jetzt die korrekten, am Bild ausgerichteten Koordinaten.
         textY = wrapText(ctx, line.text, textStartX, textY, maxWidth, lineHeight);
     });
 }
 
-// Diese Hilfsfunktion ist jetzt korrekt, da sie mit den richtigen Koordinaten aufgerufen wird.
 function wrapText(context, text, x, y, maxWidth, lineHeight) {
     let words = text.split(' ');
     let line = '';
