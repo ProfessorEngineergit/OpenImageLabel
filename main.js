@@ -44,10 +44,6 @@ function createImageCard(file) {
     const card = document.createElement('div');
     card.className = 'image-card';
     card.id = imageId;
-    /* =======================================================
-     * KORREKTUR 1: Das Icon für die Deckkraft wurde geändert.
-     * fa-eye-dropper -> fa-circle-half-stroke
-     * ======================================================= */
     card.innerHTML = `
         <input type="checkbox" class="selection-checkbox" id="check-${imageId}">
         <div class="canvas-container"><canvas></canvas></div>
@@ -132,12 +128,12 @@ function redrawCanvas(imageState) {
     if (metadata.length === 0) return;
 
     /* =======================================================
-     * KORREKTUR 2: Das Padding wurde reduziert.
-     * fontSize * 1.5 -> fontSize * 0.8
+     * KORREKTUR: Das Padding wurde noch weiter reduziert.
+     * fontSize * 0.8 -> fontSize * 0.4
      * ======================================================= */
     const fontSize = newWidth * (settings.fontSize / 1000);
     const lineHeight = fontSize * 1.3;
-    const padding = fontSize * 0.8; // Geringerer Abstand zum Rand
+    const padding = fontSize * 0.4; // Minimaler Abstand zum Rand
 
     const textStartX = imageX + padding;
     const maxWidth = newWidth - (padding * 2);
