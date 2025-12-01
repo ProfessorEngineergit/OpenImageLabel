@@ -7,10 +7,193 @@ const gallery = document.getElementById('image-gallery');
 const globalActions = document.getElementById('global-actions');
 const downloadSelectedBtn = document.getElementById('download-selected-btn');
 const downloadAllBtn = document.getElementById('download-all-btn');
+const backgroundPhotosContainer = document.getElementById('background-photos');
 
 let imageCollection = [];
 // NEU: Globale Variable zum Speichern des kopierten Stils
 let copiedStyle = null;
+
+// --- Background Photos System ---
+// Pre-selected stock photos with labels (similar to the website's labeling style)
+const stockPhotos = [
+    {
+        url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800',
+        metadata: [
+            { text: 'Sony A7III', color: 'red' },
+            { text: 'Sony FE 24-70mm f/2.8 GM', color: 'white' },
+            { text: '35mm  ·  f/2.8  ·  1/250s  ·  ISO 400', color: 'white' }
+        ]
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800',
+        metadata: [
+            { text: 'Canon EOS R5', color: 'red' },
+            { text: 'Canon RF 50mm f/1.2L USM', color: 'white' },
+            { text: '50mm  ·  f/1.2  ·  1/500s  ·  ISO 100', color: 'white' }
+        ]
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=800',
+        metadata: [
+            { text: 'Nikon Z6 II', color: 'red' },
+            { text: 'Nikkor Z 85mm f/1.8 S', color: 'white' },
+            { text: '85mm  ·  f/1.8  ·  1/1000s  ·  ISO 200', color: 'white' }
+        ]
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=800',
+        metadata: [
+            { text: 'Fujifilm X-T4', color: 'red' },
+            { text: 'Fujinon XF 23mm f/1.4 R', color: 'white' },
+            { text: '23mm  ·  f/1.4  ·  1/125s  ·  ISO 320', color: 'white' }
+        ]
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea?w=800',
+        metadata: [
+            { text: 'Leica Q2', color: 'red' },
+            { text: 'Summilux 28mm f/1.7 ASPH', color: 'white' },
+            { text: '28mm  ·  f/1.7  ·  1/320s  ·  ISO 100', color: 'white' }
+        ]
+    }
+];
+
+let backgroundPhotoPositions = [];
+
+// Initialize background with stock photos
+function initializeBackground() {
+    stockPhotos.forEach((photo, index) => {
+        addBackgroundPhoto(photo.url, photo.metadata, index * 300);
+    });
+}
+
+// Add a photo to the background with random positioning
+function addBackgroundPhoto(imageSource, metadata, delay = 0) {
+    const container = document.createElement('div');
+    container.className = 'background-photo';
+    
+    // Random size between 200-400px
+    const size = 200 + Math.random() * 200;
+    container.style.width = size + 'px';
+    container.style.height = (size * 0.66) + 'px';
+    
+    // Find a random position that doesn't overlap too much with existing photos
+    const position = getRandomPosition(size, size * 0.66);
+    container.style.left = position.x + 'px';
+    container.style.top = position.y + 'px';
+    
+    // Random rotation for natural look
+    const rotation = -15 + Math.random() * 30;
+    container.style.transform = `rotate(${rotation}deg)`;
+    
+    // Create canvas for labeled photo
+    const canvas = document.createElement('canvas');
+    container.appendChild(canvas);
+    backgroundPhotosContainer.appendChild(container);
+    
+    // Load and render the image with labels
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        // Apply labels similar to the main labeling function
+        if (metadata && metadata.length > 0) {
+            drawBackgroundLabels(ctx, canvas, metadata);
+        }
+        
+        // Fade in with delay
+        setTimeout(() => {
+            container.classList.add('visible');
+        }, delay);
+    };
+    
+    img.onerror = () => {
+        // If image fails to load, remove the container
+        container.remove();
+    };
+    
+    if (typeof imageSource === 'string') {
+        img.src = imageSource;
+    } else {
+        // imageSource is already a data URL or Image object
+        img.src = imageSource;
+    }
+}
+
+// Draw labels on background photos
+function drawBackgroundLabels(ctx, canvas, metadata) {
+    const fontSize = canvas.width * 0.04;
+    const padding = fontSize * 0.8;
+    const lineHeight = fontSize * 1.3;
+    const textStartX = padding;
+    const maxWidth = canvas.width - (padding * 2);
+    let textY = canvas.height - padding;
+    
+    ctx.textAlign = 'left';
+    ctx.font = `700 ${fontSize}px 'Exo 2', sans-serif`;
+    ctx.textBaseline = 'bottom';
+    
+    metadata.slice().reverse().forEach(line => {
+        ctx.fillStyle = line.color === 'red' ? 'rgba(255, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+        ctx.fillText(line.text, textStartX, textY);
+        textY -= lineHeight;
+    });
+}
+
+// Get a random position that avoids clustering
+function getRandomPosition(width, height) {
+    const maxAttempts = 50;
+    const margin = 50;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const x = margin + Math.random() * (viewportWidth - width - margin * 2);
+        const y = margin + Math.random() * (viewportHeight - height - margin * 2);
+        
+        // Check if this position overlaps significantly with existing photos
+        let overlaps = false;
+        for (const pos of backgroundPhotoPositions) {
+            const overlapX = Math.abs(x - pos.x) < (width + pos.width) * 0.5;
+            const overlapY = Math.abs(y - pos.y) < (height + pos.height) * 0.5;
+            if (overlapX && overlapY) {
+                overlaps = true;
+                break;
+            }
+        }
+        
+        if (!overlaps) {
+            backgroundPhotoPositions.push({ x, y, width, height });
+            return { x, y };
+        }
+    }
+    
+    // If no non-overlapping position found, return a random position anyway
+    const x = margin + Math.random() * (viewportWidth - width - margin * 2);
+    const y = margin + Math.random() * (viewportHeight - height - margin * 2);
+    backgroundPhotoPositions.push({ x, y, width, height });
+    return { x, y };
+}
+
+// Add uploaded image to background after processing
+function addUploadedImageToBackground(imageState) {
+    // Wait a bit for the canvas to be fully rendered
+    setTimeout(() => {
+        if (imageState.canvas && imageState.originalImage) {
+            // Get the canvas data URL
+            const dataUrl = imageState.canvas.toDataURL('image/jpeg', 0.8);
+            // Add to background with a slight delay for visual effect
+            addBackgroundPhoto(dataUrl, null, 500);
+        }
+    }, 1000);
+}
+
+// Initialize background on page load
+document.addEventListener('DOMContentLoaded', initializeBackground);
 
 // --- Event Listeners ---
 dropZone.addEventListener('click', () => fileInput.click());
@@ -145,6 +328,8 @@ function processImage(imageState) {
             EXIF.getData(image, function() {
                 imageState.metadata = getFormattedMetadata(this);
                 redrawCanvas(imageState);
+                // NEU: Füge das hochgeladene Bild zum Hintergrund hinzu
+                addUploadedImageToBackground(imageState);
             });
         };
         image.src = e.target.result;
