@@ -7,10 +7,153 @@ const gallery = document.getElementById('image-gallery');
 const globalActions = document.getElementById('global-actions');
 const downloadSelectedBtn = document.getElementById('download-selected-btn');
 const downloadAllBtn = document.getElementById('download-all-btn');
+const dynamicBackgroundContainer = document.getElementById('dynamic-background-container');
+const stickyHeaderWrapper = document.querySelector('.sticky-header-wrapper');
 
 let imageCollection = [];
 // NEU: Globale Variable zum Speichern des kopierten Stils
 let copiedStyle = null;
+
+// =======================================================
+// STOCK PHOTOS FOR INITIAL BACKGROUND
+// =======================================================
+const stockPhotos = [
+    {
+        url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400',
+        camera: 'Canon EOS R5',
+        lens: 'RF 24-70mm f/2.8L',
+        settings: '35mm · f/2.8 · 1/250s · ISO 100'
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1502982720700-bfff97f2ecac?w=400',
+        camera: 'Sony A7R IV',
+        lens: 'FE 85mm f/1.4 GM',
+        settings: '85mm · f/1.4 · 1/500s · ISO 200'
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea?w=400',
+        camera: 'Nikon Z9',
+        lens: 'NIKKOR Z 70-200mm f/2.8',
+        settings: '135mm · f/2.8 · 1/1000s · ISO 400'
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400',
+        camera: 'Fujifilm X-T5',
+        lens: 'XF 56mm f/1.2 R',
+        settings: '56mm · f/1.2 · 1/320s · ISO 160'
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1495745966610-2a67f2297e5e?w=400',
+        camera: 'Leica Q3',
+        lens: 'Summilux 28mm f/1.7',
+        settings: '28mm · f/1.7 · 1/125s · ISO 100'
+    }
+];
+
+// =======================================================
+// DYNAMIC BACKGROUND FUNCTIONALITY
+// =======================================================
+function getRandomPosition() {
+    return {
+        x: Math.random() * 80 + 5, // 5-85% from left
+        y: Math.random() * 70 + 10, // 10-80% from top
+        rotation: (Math.random() - 0.5) * 20, // -10 to 10 degrees
+        size: Math.random() * 80 + 120 // 120-200px width
+    };
+}
+
+function createBackgroundPhoto(imageSrc, labelData, delay = 0) {
+    const pos = getRandomPosition();
+    
+    const photoEl = document.createElement('div');
+    photoEl.className = 'background-photo';
+    photoEl.style.left = `${pos.x}%`;
+    photoEl.style.top = `${pos.y}%`;
+    photoEl.style.width = `${pos.size}px`;
+    photoEl.style.transform = `rotate(${pos.rotation}deg)`;
+    
+    const img = document.createElement('img');
+    img.src = imageSrc;
+    img.alt = 'Background photo';
+    
+    const label = document.createElement('div');
+    label.className = 'photo-label';
+    label.innerHTML = `
+        <span class="camera">${labelData.camera}</span>
+        ${labelData.lens ? `<span class="lens">${labelData.lens}</span>` : ''}
+        ${labelData.settings ? `<span class="settings">${labelData.settings}</span>` : ''}
+    `;
+    
+    photoEl.appendChild(img);
+    photoEl.appendChild(label);
+    dynamicBackgroundContainer.appendChild(photoEl);
+    
+    // Fade in with delay
+    setTimeout(() => {
+        photoEl.classList.add('visible');
+    }, delay);
+    
+    return photoEl;
+}
+
+function initStockPhotos() {
+    stockPhotos.forEach((photo, index) => {
+        createBackgroundPhoto(photo.url, {
+            camera: photo.camera,
+            lens: photo.lens,
+            settings: photo.settings
+        }, index * 400 + 500); // Stagger the fade-in
+    });
+}
+
+function addUploadedPhotoToBackground(imageState) {
+    if (!imageState.originalImage) return;
+    
+    // Create a smaller version for background
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    const maxSize = 400;
+    const ratio = Math.min(maxSize / imageState.originalImage.width, maxSize / imageState.originalImage.height);
+    tempCanvas.width = imageState.originalImage.width * ratio;
+    tempCanvas.height = imageState.originalImage.height * ratio;
+    tempCtx.drawImage(imageState.originalImage, 0, 0, tempCanvas.width, tempCanvas.height);
+    
+    const imageSrc = tempCanvas.toDataURL('image/jpeg', 0.6);
+    
+    // Extract label data from metadata
+    const labelData = {
+        camera: imageState.metadata[0]?.text || 'Unknown Camera',
+        lens: imageState.metadata[1]?.text || '',
+        settings: imageState.metadata[2]?.text || ''
+    };
+    
+    createBackgroundPhoto(imageSrc, labelData, 200);
+}
+
+// =======================================================
+// STICKY HEADER SCROLL EFFECT
+// =======================================================
+function initScrollEffect() {
+    let lastScroll = 0;
+    
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.scrollY;
+        
+        if (currentScroll > 50) {
+            stickyHeaderWrapper.classList.add('scrolled');
+        } else {
+            stickyHeaderWrapper.classList.remove('scrolled');
+        }
+        
+        lastScroll = currentScroll;
+    }, { passive: true });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    initStockPhotos();
+    initScrollEffect();
+});
 
 // --- Event Listeners ---
 dropZone.addEventListener('click', () => fileInput.click());
@@ -145,6 +288,8 @@ function processImage(imageState) {
             EXIF.getData(image, function() {
                 imageState.metadata = getFormattedMetadata(this);
                 redrawCanvas(imageState);
+                // Add uploaded photo to dynamic background
+                addUploadedPhotoToBackground(imageState);
             });
         };
         image.src = e.target.result;
