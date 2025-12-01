@@ -106,8 +106,16 @@ function initStockPhotos() {
     });
 }
 
+// Maximum number of background photos to prevent memory issues
+const MAX_BACKGROUND_PHOTOS = 15;
+let backgroundPhotoCount = 0;
+
 function addUploadedPhotoToBackground(imageState) {
     if (!imageState.originalImage) return;
+    
+    // Limit the number of background photos
+    if (backgroundPhotoCount >= MAX_BACKGROUND_PHOTOS) return;
+    backgroundPhotoCount++;
     
     // Create a smaller version for background
     const tempCanvas = document.createElement('canvas');
@@ -120,11 +128,14 @@ function addUploadedPhotoToBackground(imageState) {
     
     const imageSrc = tempCanvas.toDataURL('image/jpeg', 0.6);
     
-    // Extract label data from metadata
+    // Extract label data from metadata using named properties
+    const cameraLine = imageState.metadata.find(m => m.color === 'red');
+    const otherLines = imageState.metadata.filter(m => m.color === 'white');
+    
     const labelData = {
-        camera: imageState.metadata[0]?.text || 'Unknown Camera',
-        lens: imageState.metadata[1]?.text || '',
-        settings: imageState.metadata[2]?.text || ''
+        camera: cameraLine?.text || 'Unknown Camera',
+        lens: otherLines[0]?.text || '',
+        settings: otherLines[1]?.text || ''
     };
     
     createBackgroundPhoto(imageSrc, labelData, 200);
@@ -134,8 +145,6 @@ function addUploadedPhotoToBackground(imageState) {
 // STICKY HEADER SCROLL EFFECT
 // =======================================================
 function initScrollEffect() {
-    let lastScroll = 0;
-    
     window.addEventListener('scroll', () => {
         const currentScroll = window.scrollY;
         
@@ -144,8 +153,6 @@ function initScrollEffect() {
         } else {
             stickyHeaderWrapper.classList.remove('scrolled');
         }
-        
-        lastScroll = currentScroll;
     }, { passive: true });
 }
 

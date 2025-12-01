@@ -145,7 +145,12 @@ body {
     position: relative;
 }
 
-.app-header::before, .global-actions-bar::before, .image-card::before, #drop-zone::before {
+/* Glass highlight effect - reusable class */
+.glass-highlight::before,
+.app-header::before, 
+.global-actions-bar::before, 
+.image-card::before, 
+#drop-zone::before {
     content: '';
     position: absolute;
     top: 0;
@@ -154,6 +159,7 @@ body {
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
     border-radius: inherit;
+    pointer-events: none;
 }
 
 .app-header {
