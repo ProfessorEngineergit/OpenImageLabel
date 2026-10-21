@@ -14,6 +14,6 @@ Open `http://localhost:8080`. The entry point is `index.html`, with application 
 
 Small experimental photo-layout tool. EXIF availability depends on the selected image; missing metadata should not be treated as verified camera information. The page loads external fonts, icons, EXIF JavaScript and sample photos, so it requires network access for those resources. No browser-compatibility or performance guarantees are implied.
 
-## Development and AI assistance
+## AI assistance
 
-Small learning or experimental project developed with AI assistance. The default-branch history includes contributions explicitly attributed to GitHub Copilot / Google Jules ([example](https://github.com/ProfessorEngineergit/OpenImageLabel/commit/0189518ee08f7623afff4620f6ccbdba8356b2fb)). This documents AI involvement in those contributions; it does not establish the origin of every line or independent validation. Existing author, co-author and session records are retained.
+Some code contributions are explicitly attributed to AI tools: [GitHub Copilot](https://github.com/ProfessorEngineergit/OpenImageLabel/commit/f168333596a92621cc70fcaf5202ec93b5998ffc), [Google Jules](https://github.com/ProfessorEngineergit/OpenImageLabel/commit/5623ae1b215e3e50746fa4f5f780b7db10482f0b). This applies to those contributions, not every file.
